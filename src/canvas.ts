@@ -1,5 +1,7 @@
 import type { DrawingTool, ToolConfig, Point } from './tools';
 import { ToolUtils } from './tools';
+import { HistoryManager, StrokeAction, ShapeAction } from './history';
+import type { DrawingAction } from './history';
 
 export class CanvasManager {
     private canvas: HTMLCanvasElement;
@@ -21,6 +23,10 @@ export class CanvasManager {
     private worldCanvas: HTMLCanvasElement;
     private worldCtx: CanvasRenderingContext2D;
 
+    // History
+    private historyManager: HistoryManager;
+    private currentStrokePoints: Point[] = [];
+
     constructor(canvasId: string) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
@@ -39,8 +45,41 @@ export class CanvasManager {
         this.worldCtx.fillStyle = 'white';
         this.worldCtx.fillRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
 
+        // History
+        this.historyManager = new HistoryManager();
+
         this.resize();
         this.setupListeners();
+        this.render();
+    }
+
+    public setHistoryLimit(limit: number) {
+        this.historyManager.setLimit(limit);
+    }
+
+    public undo() {
+        const actions = this.historyManager.undo();
+        if (actions) {
+            this.redraw(actions);
+        }
+    }
+
+    public redo() {
+        const actions = this.historyManager.redo();
+        if (actions) {
+            this.redraw(actions);
+        }
+    }
+
+    private redraw(actions: DrawingAction[]) {
+        // Clear world canvas
+        this.worldCtx.fillStyle = 'white';
+        this.worldCtx.fillRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
+
+        // Redraw all actions
+        for (const action of actions) {
+            action.draw(this.worldCtx);
+        }
         this.render();
     }
 
@@ -144,6 +183,7 @@ export class CanvasManager {
         this.startPoint = this.screenToWorld(x, y);
 
         if (this.isFreehandTool()) {
+            this.currentStrokePoints = [this.startPoint];
             this.setupContext(this.worldCtx);
             this.worldCtx.beginPath();
             this.worldCtx.moveTo(this.startPoint.x, this.startPoint.y);
@@ -172,6 +212,7 @@ export class CanvasManager {
         const currentWorldPos = this.screenToWorld(x, y);
 
         if (this.isFreehandTool()) {
+            this.currentStrokePoints.push(currentWorldPos);
             this.setupContext(this.worldCtx);
             this.worldCtx.lineTo(currentWorldPos.x, currentWorldPos.y);
             this.worldCtx.stroke();
@@ -205,20 +246,34 @@ export class CanvasManager {
             this.isDrawing = false;
             if (this.isFreehandTool()) {
                 this.worldCtx.closePath();
+                // Push StrokeAction
+                if (this.currentStrokePoints.length > 0) {
+                    this.historyManager.push(new StrokeAction([...this.currentStrokePoints], this.config));
+                }
             } else {
                 // Finalize shape on world canvas
                 const currentWorldPos = this.screenToWorld(e.clientX - this.canvas.getBoundingClientRect().left, e.clientY - this.canvas.getBoundingClientRect().top);
                 this.setupContext(this.worldCtx);
+
+                let action: ShapeAction | null = null;
+
                 switch (this.currentTool) {
                     case 'line':
                         ToolUtils.drawLine(this.worldCtx, this.startPoint, currentWorldPos);
+                        action = new ShapeAction('line', this.startPoint, currentWorldPos, this.config);
                         break;
                     case 'rect':
                         ToolUtils.drawRect(this.worldCtx, this.startPoint, currentWorldPos);
+                        action = new ShapeAction('rect', this.startPoint, currentWorldPos, this.config);
                         break;
                     case 'circle':
                         ToolUtils.drawCircle(this.worldCtx, this.startPoint, currentWorldPos);
+                        action = new ShapeAction('circle', this.startPoint, currentWorldPos, this.config);
                         break;
+                }
+
+                if (action) {
+                    this.historyManager.push(action);
                 }
                 this.render();
             }
@@ -230,6 +285,7 @@ export class CanvasManager {
     }
 
     public clear() {
+        this.historyManager.clear(); // Clear history too? Usually YES for New File.
         this.worldCtx.fillStyle = 'white';
         this.worldCtx.fillRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
         this.render();

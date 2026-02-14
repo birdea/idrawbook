@@ -7,12 +7,12 @@ import { GoogleService, type GoogleUser } from './google';
 document.addEventListener('DOMContentLoaded', () => {
   const canvasManager = new CanvasManager('main-canvas');
 
-  // Google Integration
+  // --- Google Integration ---
   const googleService = new GoogleService((user: GoogleUser | null) => {
     updateGoogleUI(user);
   });
 
-  // Inject Icons
+  // --- Icon Injection ---
   const iconMap: Record<string, string> = {
     'clear-btn': ICONS.clear,
     'tool-pencil': ICONS.pencil,
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tool-hand': ICONS.hand,
     'google-login-btn': ICONS.google,
     'export-main-btn': ICONS.download,
+    'menu-google-icon': ICONS.google,
   };
 
   Object.entries(iconMap).forEach(([id, svg]) => {
@@ -38,7 +39,144 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Tool Selection Helper
+  // --- Menu Bar Logic ---
+  const menuItems = document.querySelectorAll('.menu-item');
+
+  // Toggle Dropdowns
+  menuItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close others
+      menuItems.forEach(other => {
+        if (other !== item) other.classList.remove('active');
+      });
+      item.classList.toggle('active');
+    });
+  });
+
+  // Close Dropdowns on outside click
+  window.addEventListener('click', () => {
+    menuItems.forEach(item => item.classList.remove('active'));
+  });
+
+  // PREVENT closing when clicking inside the dropdown
+  document.querySelectorAll('.menu-dropdown').forEach(dropdown => {
+    dropdown.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  // Close dropdown when a button inside is clicked (action taken)
+  document.querySelectorAll('.menu-dropdown button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      menuItems.forEach(item => item.classList.remove('active'));
+    });
+  });
+
+
+  // --- Menu Actions ---
+
+  // FILE
+  document.getElementById('menu-new')?.addEventListener('click', () => {
+    if (confirm('Create new book? Unsaved changes will be lost.')) {
+      canvasManager.clear();
+    }
+  });
+
+  document.getElementById('menu-delete')?.addEventListener('click', () => {
+    if (confirm('Delete current book?')) {
+      canvasManager.clear();
+    }
+  });
+
+  // Settings Modal
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsClose = () => settingsModal?.classList.add('hidden');
+
+  document.getElementById('menu-settings')?.addEventListener('click', () => {
+    settingsModal?.classList.remove('hidden');
+    // Load current config if needed (not persisted yet outside runtime)
+  });
+
+  document.getElementById('settings-close')?.addEventListener('click', settingsClose);
+  document.getElementById('settings-cancel-btn')?.addEventListener('click', settingsClose);
+
+  document.getElementById('settings-save-btn')?.addEventListener('click', () => {
+    const limitInput = document.getElementById('history-limit') as HTMLInputElement;
+    const limit = parseInt(limitInput.value);
+    if (limit && limit >= 10 && limit <= 500) {
+      canvasManager.setHistoryLimit(limit);
+      settingsClose();
+    } else {
+      alert('Please enter a valid history limit (10-500).');
+    }
+  });
+
+
+  // EDIT
+  document.getElementById('menu-undo')?.addEventListener('click', () => canvasManager.undo());
+  document.getElementById('menu-redo')?.addEventListener('click', () => canvasManager.redo());
+
+  // Shortcuts for Undo/Redo
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        canvasManager.redo();
+      } else {
+        canvasManager.undo();
+      }
+    }
+  });
+
+  // VIEW (Toggle Toolbars)
+  const toolPanel = document.querySelector('.tool-panel') as HTMLElement;
+  const propPanel = document.querySelector('.properties-panel') as HTMLElement;
+
+  document.getElementById('menu-toggle-left')?.addEventListener('click', (e) => {
+    const btn = e.target as HTMLElement;
+    if (toolPanel.style.display === 'none') {
+      toolPanel.style.display = 'flex';
+      btn.textContent = 'Hide Toolbar (L)';
+    } else {
+      toolPanel.style.display = 'none';
+      btn.textContent = 'Show Toolbar (L)';
+    }
+  });
+
+  document.getElementById('menu-toggle-right')?.addEventListener('click', () => { // Removed unused param 'e'
+    // const btn = e.target as HTMLElement; // Removed unused btn
+    const button = document.getElementById('menu-toggle-right')!;
+    if (propPanel.style.display === 'none') {
+      propPanel.style.display = 'flex'; // or block/grid depending on css? css uses default (block) inside flex container?
+      // checking css: .properties-panel is side element. display not specified, so block?
+      // Actually main-container is flex.
+      button.textContent = 'Hide Toolbar (R)';
+    } else {
+      propPanel.style.display = 'none';
+      button.textContent = 'Show Toolbar (R)';
+    }
+  });
+
+
+  // ACCOUNT
+  // Existing Google Login button in header calls googleService.login()
+  // New Menu Login
+  document.getElementById('menu-google-login')?.addEventListener('click', () => {
+    googleService.login();
+  });
+
+  document.getElementById('menu-google-logout')?.addEventListener('click', () => {
+    googleService.logout();
+  });
+
+
+  // HELP
+  document.getElementById('menu-about')?.addEventListener('click', () => {
+    alert('iDrawBook v1.0.0\nA premium web-based drawing application.');
+  });
+
+
+  // --- Existing App Logic ---
+
   function switchTool(tool: DrawingTool) {
     toolButtons.forEach(btn => {
       if (btn.getAttribute('data-tool') === tool) {
@@ -50,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvasManager.setTool(tool);
   }
 
-  // Tool Selection
   const toolButtons = document.querySelectorAll('.tool-btn[data-tool]');
   toolButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -59,14 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Keyboard Shortcuts
   window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'h') {
       switchTool('hand');
     }
   });
 
-  // Property Controls
   const sizeInput = document.getElementById('stroke-size') as HTMLInputElement;
   const opacityInput = document.getElementById('stroke-opacity') as HTMLInputElement;
   const colorPicker = document.getElementById('color-picker') as HTMLInputElement;
@@ -79,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateActiveSwatch(color);
   };
 
-  // Color Swatches
   const swatches = document.querySelectorAll('.color-swatch');
   swatches.forEach(swatch => {
     swatch.addEventListener('click', () => {
@@ -101,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Action Buttons
   document.getElementById('clear-btn')?.addEventListener('click', () => {
     if (confirm('Clear entire canvas?')) {
       canvasManager.clear();
@@ -122,19 +255,16 @@ document.addEventListener('DOMContentLoaded', () => {
     canvasManager.exportImage();
   });
 
-  // Drive Modal Logic
+  // Drive Modal
   const driveModal = document.getElementById('drive-modal');
   const filenameInput = document.getElementById('drive-filename') as HTMLInputElement;
   const folderDisplayName = document.getElementById('selected-folder-name');
   let selectedFolderId = '';
 
   document.getElementById('export-drive-btn')?.addEventListener('click', async () => {
-    // Reset modal state
     filenameInput.value = `iDrawBook_${Date.now()}.png`;
     selectedFolderId = '';
     if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
-
-    // Show modal
     driveModal?.classList.remove('hidden');
   });
 
@@ -146,13 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Modal Actions
   const closeModal = () => driveModal?.classList.add('hidden');
-  const modalClose = document.getElementById('modal-close');
-  if (modalClose) modalClose.onclick = closeModal;
-
-  const modalCancel = document.getElementById('modal-cancel-btn');
-  if (modalCancel) modalCancel.onclick = closeModal;
+  document.getElementById('modal-close')!.onclick = closeModal;
+  document.getElementById('modal-cancel-btn')!.onclick = closeModal;
 
   const modalSave = document.getElementById('modal-save-btn');
   if (modalSave) {
@@ -167,23 +293,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateGoogleUI(user: GoogleUser | null) {
-    const loginBtn = document.getElementById('google-login-btn');
-    const profile = document.getElementById('user-profile');
-    const avatar = document.getElementById('user-avatar') as HTMLImageElement;
-    const name = document.getElementById('user-name');
-    const driveBtn = document.getElementById('export-drive-btn');
+    // Menu User UI
+    const menuLogin = document.getElementById('menu-google-login');
+    const menuInfo = document.getElementById('menu-user-info');
+    const menuAvatar = document.getElementById('menu-user-avatar') as HTMLImageElement;
+    const menuName = document.getElementById('menu-user-name');
 
     if (user) {
-      loginBtn?.classList.add('hidden');
-      profile?.classList.remove('hidden');
-      if (avatar) avatar.src = user.picture;
-      if (name) name.textContent = user.name;
-      driveBtn?.classList.remove('hidden');
+      // Menu
+      menuLogin?.classList.add('hidden');
+      menuInfo?.classList.remove('hidden');
+      if (menuAvatar) menuAvatar.src = user.picture;
+      if (menuName) menuName.textContent = user.name;
+
     } else {
-      loginBtn?.classList.remove('hidden');
-      profile?.classList.add('hidden');
-      driveBtn?.classList.add('hidden');
-      driveModal?.classList.add('hidden');
+      // Menu
+      menuLogin?.classList.remove('hidden');
+      menuInfo?.classList.add('hidden');
+
+      // Should likely close the modal if open, but existing logic handles modal access separately
+      // However, the modal is hidden if not logged in via old logic. 
+      // We should ensure modal hides if not logged in.
+      document.getElementById('drive-modal')?.classList.add('hidden');
     }
   }
+
+  // New Save Book Logic (Trigger Export Modal)
+  document.getElementById('menu-save')?.addEventListener('click', () => {
+    // Check login first? Or just show modal and let modal logic handle?
+    // Let's just open the modal, consistent with old export-drive-btn
+    const filenameInput = document.getElementById('drive-filename') as HTMLInputElement;
+    const folderDisplayName = document.getElementById('selected-folder-name');
+
+    filenameInput.value = `iDrawBook_${Date.now()}.png`;
+    selectedFolderId = ''; // Keep previous folder? No, let's reset for now or keep var
+    // actually selectedFolderId is scoped in 'Drive Modal' block below which is not accessible here easily unless we move it up.
+    // Let's use the existing event listener block structure or move variables.
+    if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
+    driveModal?.classList.remove('hidden');
+  });
 });

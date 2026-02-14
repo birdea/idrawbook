@@ -13,24 +13,75 @@
 <body>
   <header>
     <div class="logo">iDrawBook</div>
-    <div class="top-actions">
-      <button id="clear-btn" class="tool-btn" data-tooltip="Clear"></button>
-      <div class="user-action">
-        <button id="google-login-btn" class="btn-secondary" data-tooltip="Login with Google"></button>
-        <div id="user-profile" class="user-profile hidden">
-          <img id="user-avatar" src="" alt="Avatar">
-          <span id="user-name"></span>
-        </div>
+    <!-- Top actions removed as requested -->
+  </header>
+
+  <!-- Menu Bar -->
+  <div class="menu-bar">
+    <div class="menu-item" data-menu="file">
+      <span>BOOK</span>
+      <div class="menu-dropdown">
+        <button id="menu-new">New Book</button>
+        <button id="menu-save">Save Book</button>
+        <button id="menu-open">Open Book</button>
+        <button id="menu-close">Close Book</button>
+        <div class="menu-separator"></div>
+        <button id="menu-recent">Recent Books</button>
+        <div class="menu-separator"></div>
+        <button id="menu-delete">Delete Book</button>
+        <div class="menu-separator"></div>
+        <button id="menu-settings">Settings</button>
       </div>
-      <div class="export-dropdown">
-        <button id="export-main-btn" class="btn-primary">Export</button>
-        <div class="dropdown-content">
-          <button id="export-pc-btn">Save to PC</button>
-          <button id="export-drive-btn" class="hidden">Save to Drive</button>
+    </div>
+    <div class="menu-item" data-menu="edit">
+      <span>EDIT</span>
+      <div class="menu-dropdown">
+        <button id="menu-undo">Undo <span class="shortcut">⌘Z</span></button>
+        <button id="menu-redo">Redo <span class="shortcut">⌘⇧Z</span></button>
+        <div class="menu-separator"></div>
+        <button id="menu-cut">Cut</button>
+        <button id="menu-copy">Copy</button>
+        <button id="menu-paste">Paste</button>
+        <button id="menu-delete-edit">Delete</button>
+        <div class="menu-separator"></div>
+        <button id="menu-select">Select</button>
+        <button id="menu-select-all">Select All</button>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="view">
+      <span>VIEW</span>
+      <div class="menu-dropdown">
+        <button id="menu-toggle-left">Hide Toolbar (L)</button>
+        <button id="menu-toggle-right">Hide Toolbar (R)</button>
+      </div>
+    </div>
+    <div class="menu-item" data-menu="account">
+      <span>ACCOUNT</span>
+      <div class="menu-dropdown">
+        <button id="menu-google-login">
+          <span id="menu-google-icon" class="icon-left"></span>
+          <span>Sign in Google</span>
+        </button>
+        <div id="menu-user-info" class="hidden">
+          <div class="user-info-display">
+            <img id="menu-user-avatar" src="" alt="Avatar">
+            <span id="menu-user-name"></span>
+          </div>
+          <button id="menu-google-logout">Sign out</button>
         </div>
       </div>
     </div>
-  </header>
+    <div class="menu-item" data-menu="help">
+      <span>HELP</span>
+      <div class="menu-dropdown">
+        <button id="menu-search">Search...</button>
+        <div class="menu-separator"></div>
+        <button id="menu-about">About iDrawBook</button>
+        <button id="menu-contacts">Contacts</button>
+        <button id="menu-feedback">Feedback</button>
+      </div>
+    </div>
+  </div>
 
   <main class="main-container">
     <aside class="tool-panel">
@@ -110,6 +161,27 @@
       <div class="modal-footer">
         <button id="modal-cancel-btn" class="btn-text">Cancel</button>
         <button id="modal-save-btn" class="btn-primary">Save to Drive</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button id="settings-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>History Limit (Undo/Redo)</label>
+          <input type="number" id="history-limit" value="100" min="10" max="500">
+          <span class="hint">Max number of actions to remember.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="settings-cancel-btn" class="btn-text">Cancel</button>
+        <button id="settings-save-btn" class="btn-primary">Save Changes</button>
       </div>
     </div>
   </div>
