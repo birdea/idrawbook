@@ -135,6 +135,38 @@ export class CanvasManager {
         this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.canvas.addEventListener('mouseout', this.handleMouseUp.bind(this));
+
+        // Touch support
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            const touch = e.changedTouches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                button: 0
+            });
+            this.handleMouseDown(mouseEvent);
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                button: 0
+            });
+            this.handleMouseMove(mouseEvent);
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            this.handleMouseUp(mouseEvent);
+        }, { passive: false });
+
         window.addEventListener('mouseup', this.handleMouseUp.bind(this));
         window.addEventListener('resize', this.resize.bind(this));
     }

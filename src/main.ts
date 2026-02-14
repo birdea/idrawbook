@@ -400,4 +400,60 @@ document.addEventListener('DOMContentLoaded', () => {
     if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
     driveModal?.classList.remove('hidden');
   });
+  // Mobile UI Handlers
+  const mobileStrokeModal = document.getElementById('mobile-stroke-modal');
+  const mobileColorModal = document.getElementById('mobile-color-modal');
+
+  document.getElementById('mobile-btn-stroke')?.addEventListener('click', () => {
+    mobileStrokeModal?.classList.remove('hidden');
+    // Sync values
+    (document.getElementById('mobile-stroke-size') as HTMLInputElement).value = sizeInput.value;
+    (document.getElementById('mobile-stroke-opacity') as HTMLInputElement).value = opacityInput.value;
+  });
+
+  document.getElementById('mobile-btn-color')?.addEventListener('click', () => {
+    mobileColorModal?.classList.remove('hidden');
+    // Sync values? Active swatch is already tracked
+    const currentColor = colorPicker.value;
+    (document.getElementById('mobile-color-picker') as HTMLInputElement).value = currentColor;
+  });
+
+  document.getElementById('mobile-stroke-close')?.addEventListener('click', () => mobileStrokeModal?.classList.add('hidden'));
+  document.getElementById('mobile-color-close')?.addEventListener('click', () => mobileColorModal?.classList.add('hidden'));
+
+  // Mobile Controls Sync
+  document.getElementById('mobile-stroke-size')?.addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    sizeInput.value = val;
+    canvasManager.setConfig({ size: parseInt(val) });
+  });
+
+  document.getElementById('mobile-stroke-opacity')?.addEventListener('input', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    opacityInput.value = val;
+    canvasManager.setConfig({ opacity: parseInt(val) });
+  });
+
+  document.getElementById('mobile-color-picker')?.addEventListener('change', (e) => {
+    const color = (e.target as HTMLInputElement).value;
+    colorPicker.value = color; // Sync desktop picker
+    canvasManager.setConfig({ color });
+    updateActiveSwatch(color);
+  });
+
+  // Mobile Swatches
+  const mobileSwatches = document.querySelectorAll('#mobile-color-grid .color-swatch');
+  mobileSwatches.forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      mobileSwatches.forEach(s => s.classList.remove('active'));
+      swatch.classList.add('active');
+      const color = swatch.getAttribute('data-color')!;
+      canvasManager.setConfig({ color });
+      (document.getElementById('mobile-color-picker') as HTMLInputElement).value = color;
+
+      // Also sync desktop
+      colorPicker.value = color;
+      updateActiveSwatch(color);
+    });
+  });
 });
