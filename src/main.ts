@@ -131,28 +131,50 @@ document.addEventListener('DOMContentLoaded', () => {
   const toolPanel = document.querySelector('.tool-panel') as HTMLElement;
   const propPanel = document.querySelector('.properties-panel') as HTMLElement;
 
-  document.getElementById('menu-toggle-left')?.addEventListener('click', (e) => {
-    const btn = e.target as HTMLElement;
+  function toggleLeftToolbar() {
+    const btn = document.getElementById('menu-toggle-left')!;
     if (toolPanel.style.display === 'none') {
       toolPanel.style.display = 'flex';
-      btn.textContent = 'Hide Toolbar (L)';
+      btn.innerHTML = 'Hide Toolbar (L) <span class="shortcut">^L</span>';
     } else {
       toolPanel.style.display = 'none';
-      btn.textContent = 'Show Toolbar (L)';
+      btn.innerHTML = 'Show Toolbar (L) <span class="shortcut">^L</span>';
+    }
+  }
+
+  function toggleRightToolbar() {
+    const btn = document.getElementById('menu-toggle-right')!;
+    if (propPanel.style.display === 'none') {
+      propPanel.style.display = 'flex';
+      btn.innerHTML = 'Hide Toolbar (R) <span class="shortcut">^R</span>';
+    } else {
+      propPanel.style.display = 'none';
+      btn.innerHTML = 'Show Toolbar (R) <span class="shortcut">^R</span>';
+    }
+  }
+
+  document.getElementById('menu-toggle-left')?.addEventListener('click', toggleLeftToolbar);
+  document.getElementById('menu-toggle-right')?.addEventListener('click', toggleRightToolbar);
+
+  window.addEventListener('keydown', (e) => {
+    // Toggle Left: Ctrl+L
+    if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+      e.preventDefault();
+      toggleLeftToolbar();
+    }
+    // Toggle Right: Ctrl+R
+    if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+      e.preventDefault();
+      toggleRightToolbar();
     }
   });
 
-  document.getElementById('menu-toggle-right')?.addEventListener('click', () => { // Removed unused param 'e'
-    // const btn = e.target as HTMLElement; // Removed unused btn
-    const button = document.getElementById('menu-toggle-right')!;
-    if (propPanel.style.display === 'none') {
-      propPanel.style.display = 'flex'; // or block/grid depending on css? css uses default (block) inside flex container?
-      // checking css: .properties-panel is side element. display not specified, so block?
-      // Actually main-container is flex.
-      button.textContent = 'Hide Toolbar (R)';
-    } else {
-      propPanel.style.display = 'none';
-      button.textContent = 'Show Toolbar (R)';
+
+  // HELP
+  document.getElementById('menu-search')?.addEventListener('click', () => {
+    const query = prompt('Search features...');
+    if (query) {
+      alert(`Searching for: ${query} (Feature not fully implemented)`);
     }
   });
 
