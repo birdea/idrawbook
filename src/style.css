@@ -155,6 +155,12 @@ header {
   margin-left: 12px;
 }
 
+.text-todo {
+  color: #FF9500;
+  /* Orange to indicate work in progress */
+  font-weight: 600;
+}
+
 /* User Info in Menu */
 .user-info-display {
   padding: 8px 10px;
