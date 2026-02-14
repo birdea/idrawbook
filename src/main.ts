@@ -318,6 +318,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sizeInput.oninput = (e) => canvasManager.setConfig({ size: parseInt((e.target as HTMLInputElement).value) });
   opacityInput.oninput = (e) => canvasManager.setConfig({ opacity: parseInt((e.target as HTMLInputElement).value) });
+
+  const hardnessInput = document.getElementById('stroke-hardness') as HTMLInputElement;
+  const pressureInput = document.getElementById('stroke-pressure') as HTMLInputElement;
+
+  if (hardnessInput) {
+    hardnessInput.oninput = (e) => canvasManager.setConfig({ hardness: parseInt((e.target as HTMLInputElement).value) });
+  }
+
+  if (pressureInput) {
+    pressureInput.oninput = (e) => canvasManager.setConfig({ pressure: parseInt((e.target as HTMLInputElement).value) });
+  }
   colorPicker.onchange = (e) => {
     const color = (e.target as HTMLInputElement).value;
     canvasManager.setConfig({ color });
