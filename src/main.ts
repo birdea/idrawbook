@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tool-rect': ICONS.rect,
     'tool-circle': ICONS.circle,
     'tool-hand': ICONS.hand,
+    'tool-move': ICONS.move,
     'google-login-btn': ICONS.google,
     'export-main-btn': ICONS.download,
     'menu-google-icon': ICONS.google,
@@ -379,10 +380,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastTool: DrawingTool = 'pencil'; // Track previous tool for toggling
 
   function switchTool(tool: DrawingTool) {
-    // If switching TO hand, save current tool if it's NOT hand
-    if (tool === 'hand') {
+    // If switching TO hand or move, save current tool if it's NOT hand/move
+    if (tool === 'hand' || tool === 'move') {
       const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool') as DrawingTool;
-      if (currentActive && currentActive !== 'hand') {
+      if (currentActive && currentActive !== 'hand' && currentActive !== 'move') {
         lastTool = currentActive;
       }
     }
@@ -401,11 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
   toolButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-tool') as DrawingTool;
-      // If clicking Hand button specifically
-      if (tool === 'hand') {
+      // If clicking Hand or Move button specifically
+      if (tool === 'hand' || tool === 'move') {
         const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
-        if (currentActive === 'hand') {
-          // If already hand, toggle back
+        if (currentActive === tool) {
+          // If already active, toggle back
           switchTool(lastTool);
           return;
         }
@@ -445,6 +446,16 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'f':
           e.preventDefault();
           switchTool('fill');
+          break;
+        case 'm':
+          e.preventDefault();
+          // Toggle Move
+          const currentMove = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
+          if (currentMove === 'move') {
+            switchTool(lastTool);
+          } else {
+            switchTool('move');
+          }
           break;
         // Existing View/Edit shortcuts handled elsewhere (z, l, r)
       }
@@ -592,61 +603,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
     driveModal?.classList.remove('hidden');
   });
-  // Mobile UI Handlers
-  const mobileStrokeModal = document.getElementById('mobile-stroke-modal');
-  const mobileColorModal = document.getElementById('mobile-color-modal');
+  // --- Dynamic Mobile UI Logic ---
+  const mobileBottomBar = document.getElementById('mobile-bottom-bar');
+  const mobileGenericModal = document.getElementById('mobile-generic-modal');
+  const mobileModalTitle = document.getElementById('mobile-modal-title');
+  const mobileModalBody = document.getElementById('mobile-modal-body');
+  const mobileModalClose = document.getElementById('mobile-modal-close');
 
-  document.getElementById('mobile-btn-stroke')?.addEventListener('click', () => {
-    mobileStrokeModal?.classList.remove('hidden');
-    // Sync values
-    (document.getElementById('mobile-stroke-size') as HTMLInputElement).value = sizeInput.value;
-    (document.getElementById('mobile-stroke-opacity') as HTMLInputElement).value = opacityInput.value;
+  let currentActiveSection: HTMLElement | null = null;
+  let originalParent: HTMLElement | null = null;
+
+  function closeMobileModal() {
+    if (currentActiveSection && originalParent) {
+      originalParent.appendChild(currentActiveSection);
+    }
+    mobileGenericModal?.classList.add('hidden');
+    currentActiveSection = null;
+    originalParent = null;
+  }
+
+  mobileModalClose?.addEventListener('click', closeMobileModal);
+  mobileGenericModal?.addEventListener('click', (e) => {
+    if (e.target === mobileGenericModal) closeMobileModal();
   });
 
-  document.getElementById('mobile-btn-color')?.addEventListener('click', () => {
-    mobileColorModal?.classList.remove('hidden');
-    // Sync values? Active swatch is already tracked
-    const currentColor = colorPicker.value;
-    (document.getElementById('mobile-color-picker') as HTMLInputElement).value = currentColor;
-  });
+  // Find all sections in the properties panel
+  const propSections = document.querySelectorAll('.properties-panel .prop-section');
+  propSections.forEach(section => {
+    const title = section.querySelector('h3')?.textContent || 'Section';
+    const content = section.querySelector('.prop-content') as HTMLElement;
 
-  document.getElementById('mobile-stroke-close')?.addEventListener('click', () => mobileStrokeModal?.classList.add('hidden'));
-  document.getElementById('mobile-color-close')?.addEventListener('click', () => mobileColorModal?.classList.add('hidden'));
-
-  // Mobile Controls Sync
-  document.getElementById('mobile-stroke-size')?.addEventListener('input', (e) => {
-    const val = (e.target as HTMLInputElement).value;
-    sizeInput.value = val;
-    canvasManager.setConfig({ size: parseInt(val) });
-  });
-
-  document.getElementById('mobile-stroke-opacity')?.addEventListener('input', (e) => {
-    const val = (e.target as HTMLInputElement).value;
-    opacityInput.value = val;
-    canvasManager.setConfig({ opacity: parseInt(val) });
-  });
-
-  document.getElementById('mobile-color-picker')?.addEventListener('change', (e) => {
-    const color = (e.target as HTMLInputElement).value;
-    colorPicker.value = color; // Sync desktop picker
-    canvasManager.setConfig({ color });
-    updateActiveSwatch(color);
-  });
-
-  // Mobile Swatches
-  const mobileSwatches = document.querySelectorAll('#mobile-color-grid .color-swatch');
-  mobileSwatches.forEach(swatch => {
-    swatch.addEventListener('click', () => {
-      mobileSwatches.forEach(s => s.classList.remove('active'));
-      swatch.classList.add('active');
-      const color = swatch.getAttribute('data-color')!;
-      canvasManager.setConfig({ color });
-      (document.getElementById('mobile-color-picker') as HTMLInputElement).value = color;
-
-      // Also sync desktop
-      colorPicker.value = color;
-      updateActiveSwatch(color);
-    });
+    if (content && mobileBottomBar) {
+      const btn = document.createElement('button');
+      btn.textContent = title;
+      btn.addEventListener('click', () => {
+        if (mobileModalTitle) mobileModalTitle.textContent = `${title} Settings`;
+        if (mobileModalBody) {
+          mobileModalBody.innerHTML = ''; // Clear
+          originalParent = content.parentElement;
+          currentActiveSection = content;
+          mobileModalBody.appendChild(content);
+        }
+        mobileGenericModal?.classList.remove('hidden');
+      });
+      mobileBottomBar.appendChild(btn);
+    }
   });
 
   // --- New Page Logic ---

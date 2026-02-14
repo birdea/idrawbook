@@ -20,6 +20,7 @@ export class CanvasManager {
     private offscreenCtx: CanvasRenderingContext2D;
     private isDrawing: boolean = false;
     private isPanning: boolean = false;
+    private isMovingPage: boolean = false;
     private startPoint: Point = { x: 0, y: 0 };
     private currentTool: DrawingTool = 'pencil';
     private config: ToolConfig = { size: 5, color: '#000000', opacity: 100, hardness: 100, pressure: 50 };
@@ -278,6 +279,8 @@ export class CanvasManager {
     private updateCursor() {
         if (this.currentTool === 'hand') {
             this.canvas.style.cursor = 'grab';
+        } else if (this.currentTool === 'move') {
+            this.canvas.style.cursor = 'move';
         } else {
             this.canvas.style.cursor = 'crosshair';
         }
@@ -345,6 +348,7 @@ export class CanvasManager {
             return;
         }
 
+
         this.startPoint = this.screenToWorld(x, y);
         // Include pressure in start point
         // PointerType 'mouse' usually has pressure 0.5 when down, or 0.
@@ -363,6 +367,23 @@ export class CanvasManager {
                 targetPage = page;
                 break;
             }
+        }
+
+        if (this.currentTool === 'move') {
+            if (targetPage) {
+                this.activePageId = targetPage.id;
+                this.isMovingPage = true;
+                this.canvas.style.cursor = 'move';
+                this.onUpdate?.(targetPage.id);
+                return;
+            } else if (this.activePageId) {
+                // If clicked on empty space but have active page, move the active one?
+                // Or just don't move. Usually move tool requires clicking ON the object.
+                // Let's allow moving the active one even if clicking empty space, 
+                // OR just return. Let's return to be safe.
+                return;
+            }
+            return;
         }
 
         if (!targetPage) {
@@ -420,6 +441,20 @@ export class CanvasManager {
             this.offset.y += y - this.lastMousePos.y;
             this.lastMousePos = { x, y };
             this.render();
+            return;
+        }
+
+        if (this.isMovingPage && this.activePageId) {
+            const page = this.pages.get(this.activePageId);
+            if (page) {
+                const dx = (x - this.lastMousePos.x) / this.scale;
+                const dy = (y - this.lastMousePos.y) / this.scale;
+                page.x += dx;
+                page.y += dy;
+                this.lastMousePos = { x, y };
+                this.render();
+                this.onUpdate?.(this.activePageId);
+            }
             return;
         }
 
@@ -487,6 +522,10 @@ export class CanvasManager {
     private handlePointerUp(e: PointerEvent) {
         if (this.isPanning) {
             this.isPanning = false;
+            this.updateCursor();
+        }
+        if (this.isMovingPage) {
+            this.isMovingPage = false;
             this.updateCursor();
         }
         if (this.isDrawing && this.activePageId) {

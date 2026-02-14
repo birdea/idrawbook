@@ -1034,12 +1034,15 @@ input[type="range"]::-webkit-slider-thumb:hover {
     background: var(--apple-surface);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 20px;
     box-shadow: var(--panel-shadow);
     border: 0.5px solid var(--apple-border);
-    gap: 16px;
+    gap: 8px;
     z-index: 1000;
+    max-width: 90vw;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .mobile-bottom-bar button {

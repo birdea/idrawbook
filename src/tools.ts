@@ -1,4 +1,4 @@
-export type DrawingTool = 'pencil' | 'brush' | 'pen' | 'eraser' | 'fill' | 'line' | 'rect' | 'circle' | 'hand';
+export type DrawingTool = 'pencil' | 'brush' | 'pen' | 'eraser' | 'fill' | 'line' | 'rect' | 'circle' | 'hand' | 'move';
 
 export interface ToolConfig {
     size: number;
