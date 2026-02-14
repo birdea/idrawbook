@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tool-brush': ICONS.brush,
     'tool-pen': ICONS.pen,
     'tool-eraser': ICONS.eraser,
+    'tool-fill': ICONS.bucket,
     'tool-line': ICONS.line,
     'tool-rect': ICONS.rect,
     'tool-circle': ICONS.circle,
@@ -301,6 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'e':
           e.preventDefault();
           switchTool('eraser');
+          break;
+        case 'f':
+          e.preventDefault();
+          switchTool('fill');
           break;
         // Existing View/Edit shortcuts handled elsewhere (z, l, r)
       }
