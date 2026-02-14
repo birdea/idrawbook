@@ -7,6 +7,13 @@ import { GoogleService, type GoogleUser } from './google';
 document.addEventListener('DOMContentLoaded', () => {
   const canvasManager = new CanvasManager('main-canvas');
 
+  // --- Canvas Info Initialization ---
+  const worldSize = canvasManager.getWorldSize();
+  const widthDisplay = document.getElementById('canvas-width');
+  const heightDisplay = document.getElementById('canvas-height');
+  if (widthDisplay) widthDisplay.textContent = `${worldSize.width} px`;
+  if (heightDisplay) heightDisplay.textContent = `${worldSize.height} px`;
+
   // --- Google Integration ---
   const googleService = new GoogleService((user: GoogleUser | null) => {
     updateGoogleUI(user);
@@ -75,9 +82,39 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Menu Actions ---
 
   // FILE
+  // FILE
+  const newBookModal = document.getElementById('new-book-modal');
+  const closeNewBookModal = () => newBookModal?.classList.add('hidden');
+
   document.getElementById('menu-new')?.addEventListener('click', () => {
+    newBookModal?.classList.remove('hidden');
+  });
+
+  document.getElementById('new-book-close')?.addEventListener('click', closeNewBookModal);
+  document.getElementById('new-book-cancel-btn')?.addEventListener('click', closeNewBookModal);
+
+  document.getElementById('new-book-create-btn')?.addEventListener('click', () => {
+    const wInput = document.getElementById('new-book-width') as HTMLInputElement;
+    const hInput = document.getElementById('new-book-height') as HTMLInputElement;
+    const width = parseInt(wInput.value);
+    const height = parseInt(hInput.value);
+
+    // Initial check for validity
+    if (!width || !height || width <= 0 || height <= 0) {
+      alert('Please enter valid dimensions.');
+      return;
+    }
+
     if (confirm('Create new book? Unsaved changes will be lost.')) {
-      canvasManager.clear();
+      canvasManager.resizeWorld(width, height);
+
+      // Update UI
+      const wDisplay = document.getElementById('canvas-width');
+      const hDisplay = document.getElementById('canvas-height');
+      if (wDisplay) wDisplay.textContent = `${width} px`;
+      if (hDisplay) hDisplay.textContent = `${height} px`;
+
+      closeNewBookModal();
     }
   });
 

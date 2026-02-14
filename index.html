@@ -132,6 +132,18 @@
           <input type="color" id="color-picker" value="#000000">
         </div>
       </div>
+
+      <div class="prop-section">
+        <h3>Canvas</h3>
+        <div class="prop-control">
+          <label>Width</label>
+          <span id="canvas-width">2048 px</span>
+        </div>
+        <div class="prop-control">
+          <label>Height</label>
+          <span id="canvas-height">2048 px</span>
+        </div>
+      </div>
     </aside>
   </main>
 
@@ -236,6 +248,30 @@
       <div class="modal-footer">
         <button id="settings-cancel-btn" class="btn-text">Cancel</button>
         <button id="settings-save-btn" class="btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Book Modal -->
+  <div id="new-book-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>New Book</h3>
+        <button id="new-book-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Width (px)</label>
+          <input type="number" id="new-book-width" value="2048" min="100" max="10000">
+        </div>
+        <div class="input-group">
+          <label>Height (px)</label>
+          <input type="number" id="new-book-height" value="2048" min="100" max="10000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="new-book-cancel-btn" class="btn-text">Cancel</button>
+        <button id="new-book-create-btn" class="btn-primary">Create</button>
       </div>
     </div>
   </div>

@@ -39,9 +39,9 @@ export class CanvasManager {
         this.worldCanvas = document.createElement('canvas');
         this.worldCtx = this.worldCanvas.getContext('2d', { willReadFrequently: true })!;
 
-        // Initialize world size (e.g., 5000x5000 for a large workspace)
-        this.worldCanvas.width = 5000;
-        this.worldCanvas.height = 5000;
+        // Initialize world size (default 2048x2048)
+        this.worldCanvas.width = 2048;
+        this.worldCanvas.height = 2048;
         this.worldCtx.fillStyle = 'white';
         this.worldCtx.fillRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
 
@@ -53,8 +53,37 @@ export class CanvasManager {
         this.render();
     }
 
+    public resizeWorld(width: number, height: number) {
+        this.worldCanvas.width = width;
+        this.worldCanvas.height = height;
+        this.worldCtx.fillStyle = 'white';
+        this.worldCtx.fillRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
+        this.historyManager.clear();
+
+        // Reset and center view
+        this.scale = 1.0;
+        this.offset.x = (this.canvas.width - this.worldCanvas.width) / 2;
+        this.offset.y = (this.canvas.height - this.worldCanvas.height) / 2;
+
+        this.render();
+
+        // Update zoom indicator
+        const indicator = document.getElementById('zoom-level');
+        if (indicator) {
+            indicator.textContent = '100%';
+        }
+    }
+
     public setHistoryLimit(limit: number) {
         this.historyManager.setLimit(limit);
+    }
+
+
+    public getWorldSize() {
+        return {
+            width: this.worldCanvas.width,
+            height: this.worldCanvas.height
+        };
     }
 
     public undo() {
@@ -92,8 +121,8 @@ export class CanvasManager {
 
         // Center the initial view if needed
         if (this.offset.x === 0 && this.offset.y === 0) {
-            this.offset.x = (this.canvas.width - 2000 * this.scale) / 2;
-            this.offset.y = (this.canvas.height - 2000 * this.scale) / 2;
+            this.offset.x = (this.canvas.width - this.worldCanvas.width * this.scale) / 2;
+            this.offset.y = (this.canvas.height - this.worldCanvas.height * this.scale) / 2;
         }
 
         this.render();
