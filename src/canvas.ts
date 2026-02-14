@@ -1,6 +1,6 @@
 import type { DrawingTool, ToolConfig, Point } from './tools';
 import { ToolUtils } from './tools';
-import { HistoryManager, StrokeAction, ShapeAction } from './history';
+import { HistoryManager, StrokeAction, ShapeAction, FillAction } from './history';
 import type { DrawingAction } from './history';
 
 export class CanvasManager {
@@ -242,8 +242,16 @@ export class CanvasManager {
             return;
         }
 
-        this.isDrawing = true;
         this.startPoint = this.screenToWorld(x, y);
+
+        if (this.currentTool === 'fill') {
+            ToolUtils.floodFill(this.worldCtx, this.startPoint, this.config.color);
+            this.historyManager.push(new FillAction(this.startPoint, this.config));
+            this.render();
+            return;
+        }
+
+        this.isDrawing = true;
 
         if (this.isFreehandTool()) {
             this.currentStrokePoints = [this.startPoint];

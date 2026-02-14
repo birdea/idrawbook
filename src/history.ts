@@ -1,7 +1,7 @@
 import type { ToolConfig, Point, DrawingTool } from './tools';
 import { ToolUtils } from './tools';
 
-export type ActionType = 'stroke' | 'line' | 'rect' | 'circle';
+export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill';
 
 export interface DrawingAction {
     type: ActionType;
@@ -86,6 +86,22 @@ export class ShapeAction implements DrawingAction {
                 ToolUtils.drawCircle(ctx, this.start, this.end);
                 break;
         }
+    }
+}
+
+export class FillAction implements DrawingAction {
+    type: ActionType = 'fill';
+    point: Point;
+    config: ToolConfig;
+
+    constructor(point: Point, config: ToolConfig) {
+        this.point = { ...point };
+        this.config = { ...config };
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        // Flood fill with the color from config
+        ToolUtils.floodFill(ctx, this.point, this.config.color);
     }
 }
 
