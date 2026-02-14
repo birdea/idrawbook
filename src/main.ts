@@ -199,7 +199,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Existing App Logic ---
 
+  let lastTool: DrawingTool = 'pencil'; // Track previous tool for toggling
+
   function switchTool(tool: DrawingTool) {
+    // If switching TO hand, save current tool if it's NOT hand
+    if (tool === 'hand') {
+      const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool') as DrawingTool;
+      if (currentActive && currentActive !== 'hand') {
+        lastTool = currentActive;
+      }
+    }
+
     toolButtons.forEach(btn => {
       if (btn.getAttribute('data-tool') === tool) {
         btn.classList.add('active');
@@ -214,13 +224,49 @@ document.addEventListener('DOMContentLoaded', () => {
   toolButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-tool') as DrawingTool;
+      // If clicking Hand button specifically
+      if (tool === 'hand') {
+        const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
+        if (currentActive === 'hand') {
+          // If already hand, toggle back
+          switchTool(lastTool);
+          return;
+        }
+      }
       switchTool(tool);
     });
   });
 
   window.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'h') {
-      switchTool('hand');
+    // Shortcuts with Ctrl/Cmd
+    if (e.metaKey || e.ctrlKey) {
+      const key = e.key.toLowerCase();
+
+      switch (key) {
+        case 'h':
+          e.preventDefault();
+          // Toggle Hand
+          const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
+          if (currentActive === 'hand') {
+            switchTool(lastTool);
+          } else {
+            switchTool('hand');
+          }
+          break;
+        case 'p':
+          e.preventDefault();
+          switchTool('pencil');
+          break;
+        case 'b':
+          e.preventDefault();
+          switchTool('brush');
+          break;
+        case 'e':
+          e.preventDefault();
+          switchTool('eraser');
+          break;
+        // Existing View/Edit shortcuts handled elsewhere (z, l, r)
+      }
     }
   });
 
