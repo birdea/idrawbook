@@ -4,14 +4,133 @@ export interface ToolConfig {
     size: number;
     color: string;
     opacity: number;
+    hardness: number; // 0-100 (0=soft/blur, 100=hard/sharp)
+    pressure: number; // 0-100 (influence of pressure)
 }
 
 export interface Point {
     x: number;
     y: number;
+    pressure?: number;
 }
 
 export class ToolUtils {
+    static drawStroke(ctx: CanvasRenderingContext2D, points: Point[], tool: DrawingTool, config: ToolConfig) {
+        if (points.length < 1) return;
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Set base styles
+        ToolUtils.setupContext(ctx, tool, config);
+
+        if (points.length === 1) {
+            // Draw a dot if it's just one point
+            const p = points[0];
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, config.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            return;
+        }
+
+        if (tool === 'pen' || tool === 'eraser' || tool === 'line') {
+            ToolUtils.drawPenPath(ctx, points, config);
+        } else {
+            for (let i = 0; i < points.length - 1; i++) {
+                ToolUtils.drawSegment(ctx, points[i], points[i + 1], tool, config);
+            }
+        }
+
+        // Reset
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    private static drawPenPath(ctx: CanvasRenderingContext2D, points: Point[], config: ToolConfig) {
+        ctx.lineWidth = config.size;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+    }
+
+    static setupContext(ctx: CanvasRenderingContext2D, tool: DrawingTool, config: ToolConfig) {
+        if (tool === 'eraser') {
+            ctx.strokeStyle = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0;
+        } else {
+            ctx.strokeStyle = config.color;
+            ctx.fillStyle = config.color;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = config.opacity / 100;
+        }
+    }
+
+    static drawSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, tool: DrawingTool, config: ToolConfig) {
+        if (tool === 'pencil') {
+            ToolUtils.drawPencilSegment(ctx, p1, p2, config);
+        } else if (tool === 'brush') {
+            ToolUtils.drawBrushSegment(ctx, p1, p2, config);
+        } else if (tool === 'pen' || tool === 'eraser') {
+            ToolUtils.drawPenSegment(ctx, p1, p2, config);
+        }
+    }
+
+    private static drawPenSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, config: ToolConfig) {
+        ctx.lineWidth = config.size;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+
+    private static drawPencilSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, config: ToolConfig) {
+        const baseSize = Math.max(0.5, config.size / 2);
+        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const steps = Math.ceil(dist / 1);
+
+        for (let s = 0; s <= steps; s++) {
+            const t = s / steps;
+            const x = p1.x + (p2.x - p1.x) * t;
+            const y = p1.y + (p2.y - p1.y) * t;
+
+            const pressure = (p1.pressure || 0.5) * (1 - t) + (p2.pressure || 0.5) * t;
+            const alpha = (config.opacity / 100) * (pressure * pressure);
+
+            ctx.globalAlpha = Math.min(1, alpha);
+            // fillStyle is inherited from setupContext
+
+            const jitter = (Math.random() - 0.5) * baseSize * 0.5;
+
+            ctx.beginPath();
+            ctx.arc(x + jitter, y + jitter, baseSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    private static drawBrushSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, config: ToolConfig) {
+        const hardness = config.hardness !== undefined ? config.hardness : 100;
+        const blurAmount = (100 - hardness) / 100 * (config.size * 1.5);
+
+        ctx.shadowBlur = blurAmount;
+        ctx.shadowColor = config.color;
+
+        const pressure = (p1.pressure || 0.5) + (p2.pressure || 0.5);
+        const size = config.size * (0.5 + pressure * 0.5 * (config.pressure !== undefined ? config.pressure / 50 : 1));
+
+        ctx.lineWidth = size;
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+    }
+
     static drawCircle(ctx: CanvasRenderingContext2D, center: Point, border: Point) {
         const radius = Math.sqrt(
             Math.pow(border.x - center.x, 2) + Math.pow(border.y - center.y, 2)
@@ -72,16 +191,6 @@ export class ToolUtils {
             data[pos + 2] = targetColorRGB.b;
             data[pos + 3] = 255;
         };
-
-        // Optimization: Use a Uint8Array to track visited pixels to avoid adding duplicates to stack
-        // Bitset or just byte array. Byte array for 2048x2048 is 4MB, acceptable.
-        // Actually, since we color the pixel immediately, we don't strictly need a visited array if we check color before pushing?
-        // No, because we might push the same pixel multiple times from different neighbors before it gets processed.
-        // So checking color before pushing is better, AND we need to ensure we don't push the same pixel twice in the same pass.
-        // Standard queue fill usually needs a 'queued' check.
-
-        // Simple optimization: only push if not already matching target color (which we check)
-        // Let's stick to the simple stack with color check for now. It's usually "fast enough" for 2k^2 unless it's a worst-case spiral.
 
         while (stack.length) {
             const [x, y] = stack.pop()!;

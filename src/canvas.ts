@@ -12,7 +12,7 @@ export class CanvasManager {
     private isPanning: boolean = false;
     private startPoint: Point = { x: 0, y: 0 };
     private currentTool: DrawingTool = 'pencil';
-    private config: ToolConfig = { size: 5, color: '#000000', opacity: 100 };
+    private config: ToolConfig = { size: 5, color: '#000000', opacity: 100, hardness: 100, pressure: 50 };
 
     // Viewport state
     private scale: number = 1.0;
@@ -146,59 +146,19 @@ export class CanvasManager {
     }
 
     private setupContext(ctx: CanvasRenderingContext2D) {
-        ctx.lineWidth = this.config.size;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        if (this.currentTool === 'eraser') {
-            ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = 1.0;
-            ctx.globalCompositeOperation = 'source-over';
-        } else {
-            ctx.strokeStyle = this.config.color;
-            ctx.globalAlpha = this.config.opacity / 100;
-            ctx.globalCompositeOperation = 'source-over';
-        }
+        ToolUtils.setupContext(ctx, this.currentTool, this.config);
     }
 
     private setupListeners() {
-        this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
-        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        // Use Pointer Events for Pressure Support
+        this.canvas.addEventListener('pointerdown', this.handlePointerDown.bind(this));
+        this.canvas.addEventListener('pointermove', this.handlePointerMove.bind(this));
+        this.canvas.addEventListener('pointerup', this.handlePointerUp.bind(this));
+        this.canvas.addEventListener('pointerout', this.handlePointerUp.bind(this)); // Handle leaving canvas
+
         this.canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-        this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
-        this.canvas.addEventListener('mouseout', this.handleMouseUp.bind(this));
 
-        // Touch support
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent scrolling
-            const touch = e.changedTouches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY,
-                button: 0
-            });
-            this.handleMouseDown(mouseEvent);
-        }, { passive: false });
-
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touch = e.changedTouches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY,
-                button: 0
-            });
-            this.handleMouseMove(mouseEvent);
-        }, { passive: false });
-
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            const mouseEvent = new MouseEvent('mouseup', {});
-            this.handleMouseUp(mouseEvent);
-        }, { passive: false });
-
-        window.addEventListener('mouseup', this.handleMouseUp.bind(this));
         window.addEventListener('resize', this.resize.bind(this));
     }
 
@@ -229,7 +189,8 @@ export class CanvasManager {
         this.updateZoomIndicator();
     }
 
-    private handleMouseDown(e: MouseEvent) {
+    private handlePointerDown(e: PointerEvent) {
+        this.canvas.setPointerCapture(e.pointerId);
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -243,6 +204,12 @@ export class CanvasManager {
         }
 
         this.startPoint = this.screenToWorld(x, y);
+        // Include pressure in start point
+        // PointerType 'mouse' usually has pressure 0.5 when down, or 0.
+        // We'll normalize: if 0 and key down, assume 0.5. If pen, use real pressure.
+        let pressure = e.pressure;
+        if (e.pointerType === 'mouse') pressure = 0.5;
+        this.startPoint.pressure = pressure;
 
         if (this.currentTool === 'fill') {
             ToolUtils.floodFill(this.worldCtx, this.startPoint, this.config.color);
@@ -255,9 +222,15 @@ export class CanvasManager {
 
         if (this.isFreehandTool()) {
             this.currentStrokePoints = [this.startPoint];
-            this.setupContext(this.worldCtx);
+
+            // Draw initial dot
+            ToolUtils.setupContext(this.worldCtx, this.currentTool, this.config);
             this.worldCtx.beginPath();
-            this.worldCtx.moveTo(this.startPoint.x, this.startPoint.y);
+            this.worldCtx.arc(this.startPoint.x, this.startPoint.y, this.config.size / 20, 0, Math.PI * 2);
+            // ^ Tiny dot so we see something on click? 
+            // Or just rely on ToolUtils.drawStroke logic which handles single point?
+            // Let's rely on move, or just not draw single click unless it's a dot. 
+            // Standard paint programs draw a dot.
         } else {
             // Preview uses offscreen canvas (current world state)
             this.offscreenCtx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
@@ -265,7 +238,7 @@ export class CanvasManager {
         }
     }
 
-    private handleMouseMove(e: MouseEvent) {
+    private handlePointerMove(e: PointerEvent) {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -281,12 +254,24 @@ export class CanvasManager {
         if (!this.isDrawing) return;
 
         const currentWorldPos = this.screenToWorld(x, y);
+        let pressure = e.pressure;
+        if (e.pointerType === 'mouse') pressure = 0.5;
+        currentWorldPos.pressure = pressure;
 
         if (this.isFreehandTool()) {
+            // Draw segment from last point to current point
+            const lastPoint = this.currentStrokePoints[this.currentStrokePoints.length - 1];
+
+            ToolUtils.setupContext(this.worldCtx, this.currentTool, this.config);
+            ToolUtils.drawSegment(this.worldCtx, lastPoint, currentWorldPos, this.currentTool, this.config);
+
+            // Reset after segment
+            this.worldCtx.shadowBlur = 0;
+            this.worldCtx.globalAlpha = 1.0;
+            this.worldCtx.globalCompositeOperation = 'source-over';
+
+
             this.currentStrokePoints.push(currentWorldPos);
-            this.setupContext(this.worldCtx);
-            this.worldCtx.lineTo(currentWorldPos.x, currentWorldPos.y);
-            this.worldCtx.stroke();
             this.render(); // Redraw view with new strokes
         } else {
             // Draw shape preview on main canvas
@@ -308,15 +293,16 @@ export class CanvasManager {
         this.lastMousePos = { x, y };
     }
 
-    private handleMouseUp(e: MouseEvent) {
+    private handlePointerUp(e: PointerEvent) {
         if (this.isPanning) {
             this.isPanning = false;
             this.updateCursor();
         }
         if (this.isDrawing) {
+            this.canvas.releasePointerCapture(e.pointerId);
             this.isDrawing = false;
             if (this.isFreehandTool()) {
-                this.worldCtx.closePath();
+                this.worldCtx.closePath(); // Not really needed for our segment drawing
                 // Push StrokeAction
                 if (this.currentStrokePoints.length > 0) {
                     this.historyManager.push(new StrokeAction([...this.currentStrokePoints], this.config, this.currentTool));

@@ -22,36 +22,7 @@ export class StrokeAction implements DrawingAction {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.points.length === 0) return;
-
-        ctx.beginPath();
-        ctx.lineWidth = this.config.size;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        if (this.tool === 'eraser') {
-            ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = 1.0;
-            ctx.globalCompositeOperation = 'source-over';
-        } else {
-            ctx.strokeStyle = this.config.color;
-            ctx.globalAlpha = this.config.opacity / 100;
-            ctx.globalCompositeOperation = 'source-over';
-        }
-
-        if (this.points.length === 1) {
-            // Draw a dot
-            ctx.moveTo(this.points[0].x, this.points[0].y);
-            ctx.lineTo(this.points[0].x, this.points[0].y);
-        } else {
-            ctx.moveTo(this.points[0].x, this.points[0].y);
-            for (let i = 1; i < this.points.length; i++) {
-                ctx.lineTo(this.points[i].x, this.points[i].y);
-            }
-        }
-        ctx.stroke();
-        // Reset composite operation
-        ctx.globalCompositeOperation = 'source-over';
+        ToolUtils.drawStroke(ctx, this.points, this.tool, this.config);
     }
 }
 
