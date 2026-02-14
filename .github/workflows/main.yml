@@ -1,0 +1,19 @@
+name: CI Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm install
+      - run: npm run build  # Ant Design/React 빌드 테스트
+      - run: npm test       # 작성하신 테스트 코드 실행
