@@ -4,6 +4,25 @@ import { ICONS } from './icons';
 import type { DrawingTool } from './tools';
 import { GoogleService, type GoogleUser } from './google';
 
+const showToast = (message: string) => {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <span class="toast-icon">✨</span>
+    <span>${message}</span>
+  `;
+
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   // Declare canvasManager first to avoid TDZ in updatePreview
   let canvasManager: CanvasManager;
@@ -167,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tool-pencil': ICONS.pencil,
     'tool-brush': ICONS.brush,
     'tool-pen': ICONS.pen,
+    'tool-text': ICONS.text,
     'tool-eraser': ICONS.eraser,
     'tool-fill': ICONS.bucket,
     'tool-line': ICONS.line,
@@ -465,6 +485,12 @@ document.addEventListener('DOMContentLoaded', () => {
   toolButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-tool') as DrawingTool;
+
+      if (tool === 'text') {
+        showToast('TODO : Under Development');
+        return;
+      }
+
       // If clicking Hand or Move button specifically
       if (tool === 'hand' || tool === 'move') {
         const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
@@ -519,6 +545,10 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             switchTool('move');
           }
+          break;
+        case 't':
+          e.preventDefault();
+          showToast('TODO : Under Development');
           break;
         // Existing View/Edit shortcuts handled elsewhere (z, l, r)
       }
