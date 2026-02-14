@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iDrawBook</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+</head>
+
+<body>
+  <header>
+    <div class="logo">iDrawBook</div>
+    <div class="top-actions">
+      <button id="clear-btn" class="tool-btn" data-tooltip="Clear"></button>
+      <div class="user-action">
+        <button id="google-login-btn" class="btn-secondary" data-tooltip="Login with Google"></button>
+        <div id="user-profile" class="user-profile hidden">
+          <img id="user-avatar" src="" alt="Avatar">
+          <span id="user-name"></span>
+        </div>
+      </div>
+      <div class="export-dropdown">
+        <button id="export-main-btn" class="btn-primary">Export</button>
+        <div class="dropdown-content">
+          <button id="export-pc-btn">Save to PC</button>
+          <button id="export-drive-btn" class="hidden">Save to Drive</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <aside class="tool-panel">
+      <div class="tool-group" id="drawing-tools">
+        <button class="tool-btn active" id="tool-pencil" data-tool="pencil" data-tooltip="Pencil"></button>
+        <button class="tool-btn" id="tool-brush" data-tool="brush" data-tooltip="Brush"></button>
+        <button class="tool-btn" id="tool-pen" data-tool="pen" data-tooltip="Pen"></button>
+        <button class="tool-btn" id="tool-eraser" data-tool="eraser" data-tooltip="Eraser"></button>
+      </div>
+      <div class="tool-group" id="shape-tools">
+        <button class="tool-btn" id="tool-line" data-tool="line" data-tooltip="Line"></button>
+        <button class="tool-btn" id="tool-rect" data-tool="rect" data-tooltip="Rectangle"></button>
+        <button class="tool-btn" id="tool-circle" data-tool="circle" data-tooltip="Circle"></button>
+        <button class="tool-btn" id="tool-hand" data-tool="hand" data-tooltip="Hand (H)"></button>
+      </div>
+    </aside>
+
+    <section class="canvas-wrapper" id="canvas-container">
+      <canvas id="main-canvas"></canvas>
+      <div id="zoom-level">100%</div>
+    </section>
+
+    <aside class="properties-panel">
+      <div class="prop-section">
+        <h3>Stroke</h3>
+        <div class="prop-control">
+          <label>Size</label>
+          <input type="range" id="stroke-size" min="1" max="50" value="5">
+        </div>
+        <div class="prop-control">
+          <label>Opacity</label>
+          <input type="range" id="stroke-opacity" min="1" max="100" value="100">
+        </div>
+      </div>
+
+      <div class="prop-section">
+        <h3>Color</h3>
+        <div class="color-grid">
+          <div class="color-swatch active" style="background: #000000;" data-color="#000000"></div>
+          <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
+          <div class="color-swatch" style="background: #FF3B30;" data-color="#FF3B30"></div>
+          <div class="color-swatch" style="background: #FF9500;" data-color="#FF9500"></div>
+          <div class="color-swatch" style="background: #FFCC00;" data-color="#FFCC00"></div>
+          <div class="color-swatch" style="background: #34C759;" data-color="#34C759"></div>
+          <div class="color-swatch" style="background: #007AFF;" data-color="#007AFF"></div>
+          <div class="color-swatch" style="background: #5856D6;" data-color="#5856D6"></div>
+          <div class="color-swatch" style="background: #AF52DE;" data-color="#AF52DE"></div>
+          <div class="color-swatch" style="background: #A2845E;" data-color="#A2845E"></div>
+        </div>
+        <div class="custom-color-picker">
+          <input type="color" id="color-picker" value="#000000">
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Drive Export Modal -->
+  <div id="drive-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Save to Google Drive</h3>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="drive-filename">Filename</label>
+          <input type="text" id="drive-filename" placeholder="Enter filename">
+        </div>
+        <div class="input-group">
+          <label>Save Location</label>
+          <div class="folder-selector-ui">
+            <span id="selected-folder-name" class="folder-display">My Drive (Root)</span>
+            <button id="change-folder-btn" class="btn-text small">Change Folder</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-cancel-btn" class="btn-text">Cancel</button>
+        <button id="modal-save-btn" class="btn-primary">Save to Drive</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
