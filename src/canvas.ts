@@ -639,6 +639,18 @@ export class CanvasManager {
         }
     }
 
+    public zoomIn() {
+        this.scale = Math.min(10, this.scale * 1.1);
+        this.render();
+        this.updateZoomIndicator();
+    }
+
+    public zoomOut() {
+        this.scale = Math.max(0.1, this.scale / 1.1);
+        this.render();
+        this.updateZoomIndicator();
+    }
+
     public exportImage() {
         // Export Active Page
         if (!this.activePageId) {

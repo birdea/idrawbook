@@ -103,6 +103,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- Palette Settings ---
+  let paletteSettings = {
+    count: 20,
+    columns: 10
+  };
+
+  const baseColors = [
+    '#000000', '#FFFFFF', '#FF3B30', '#FF9500', '#FFCC00',
+    '#34C759', '#007AFF', '#5856D6', '#AF52DE', '#A2845E',
+    '#1D1D1F', '#F5F5F7', '#FF2D55', '#5AC8FA', '#4CD964',
+    '#FF375F', '#FFD60A', '#30D158', '#0A84FF', '#BF5AF2'
+  ];
+
+  function generatePalette() {
+    const grid = document.getElementById('color-grid');
+    if (!grid) return;
+
+    grid.style.setProperty('--cols', paletteSettings.columns.toString());
+    grid.innerHTML = '';
+
+    for (let i = 0; i < paletteSettings.count; i++) {
+      const swatch = document.createElement('div');
+      swatch.className = 'color-swatch';
+      const color = baseColors[i % baseColors.length];
+      swatch.style.background = color;
+      swatch.dataset.color = color;
+
+      if (i === 0) swatch.classList.add('active'); // Default black
+
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        canvasManager.setConfig({ color });
+        const colorPicker = document.getElementById('color-picker') as HTMLInputElement;
+        if (colorPicker) colorPicker.value = color;
+      });
+      grid.appendChild(swatch);
+    }
+  }
+
   // Initialize Canvas Manager with onUpdate callback
   canvasManager = new CanvasManager('main-canvas', () => {
     updatePreview();
@@ -110,6 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial preview
   updatePreview();
+  generatePalette();
+
+  // Zoom Buttons
+  document.getElementById('zoom-in-btn')?.addEventListener('click', () => canvasManager.zoomIn());
+  document.getElementById('zoom-out-btn')?.addEventListener('click', () => canvasManager.zoomOut());
 
   // --- Google Integration ---
   const googleService = new GoogleService((user: GoogleUser | null) => {
@@ -135,7 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
     'icon-chevron-stroke': ICONS.chevron,
     'icon-chevron-color': ICONS.chevron,
     'icon-chevron-canvas': ICONS.chevron,
-    'icon-chevron-preview': ICONS.chevron,
+    'menu-header-toggle-left': ICONS.sidebarLeft,
+    'menu-header-toggle-right': ICONS.sidebarRight,
+    'zoom-in-btn': ICONS.plus,
+    'zoom-out-btn': ICONS.minus,
   };
 
   Object.entries(iconMap).forEach(([id, svg]) => {
@@ -258,6 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewLimitInput = document.getElementById('preview-limit') as HTMLInputElement;
     const pLimit = parseInt(previewLimitInput.value);
 
+    const colorCountInput = document.getElementById('color-count') as HTMLInputElement;
+    const colorColsInput = document.getElementById('color-columns') as HTMLInputElement;
+    const cCount = parseInt(colorCountInput.value);
+    const cCols = parseInt(colorColsInput.value);
+
     let valid = true;
 
     if (limit && limit >= 10 && limit <= 500) {
@@ -267,23 +320,29 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please enter a valid history limit (10-500).');
     }
 
-    let previewLimit = 100; // Default
-
     if (pLimit && pLimit >= 1 && pLimit <= 100) {
-      previewLimit = pLimit;
-      // Prune immediately
-      const previewList = document.querySelector('.preview-list');
-      if (previewList) {
-        while (previewList.children.length > previewLimit) {
-          previewList.lastChild?.remove();
-        }
-      }
+      // Logic handled by updatePreview on next call if needed or immediate pruning
     } else {
-      if (valid) alert('Please enter a valid preview limit (1-100).'); // Only alert if history was valid to avoid double alert
+      if (valid) alert('Please enter a valid preview limit (1-100).');
+      valid = false;
+    }
+
+    if (cCount && cCount >= 1 && cCount <= 100) {
+      paletteSettings.count = cCount;
+    } else {
+      if (valid) alert('Please enter a valid color count (1-100).');
+      valid = false;
+    }
+
+    if (cCols && cCols >= 1 && cCols <= 20) {
+      paletteSettings.columns = cCols;
+    } else {
+      if (valid) alert('Please enter a valid column count (1-20).');
       valid = false;
     }
 
     if (valid) {
+      generatePalette();
       settingsClose();
     }
   });
@@ -333,6 +392,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('menu-toggle-left')?.addEventListener('click', toggleLeftToolbar);
   document.getElementById('menu-toggle-right')?.addEventListener('click', toggleRightToolbar);
+
+  // Header/Menu Bar Toggles
+  document.getElementById('menu-header-toggle-left')?.addEventListener('click', toggleLeftToolbar);
+  document.getElementById('menu-header-toggle-right')?.addEventListener('click', toggleRightToolbar);
 
   window.addEventListener('keydown', (e) => {
     // Toggle Left: Ctrl+L
@@ -485,20 +548,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateActiveSwatch(color);
   };
 
-  const swatches = document.querySelectorAll('.color-swatch');
-  swatches.forEach(swatch => {
-    swatch.addEventListener('click', () => {
-      swatches.forEach(s => s.classList.remove('active'));
-      swatch.classList.add('active');
-      const color = swatch.getAttribute('data-color')!;
-      canvasManager.setConfig({ color });
-      colorPicker.value = color;
-    });
-  });
-
   function updateActiveSwatch(color: string) {
-    swatches.forEach(s => {
-      if (s.getAttribute('data-color') === color) {
+    document.querySelectorAll('.color-swatch').forEach(s => {
+      if ((s as HTMLElement).dataset.color?.toLowerCase() === color.toLowerCase()) {
         s.classList.add('active');
       } else {
         s.classList.remove('active');
