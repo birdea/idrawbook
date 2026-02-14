@@ -12,19 +12,27 @@
 
 <body>
   <header>
-    <div class="logo">iDrawBook</div>
-    <!-- Top actions removed as requested -->
+    <div class="header-left">
+      <span class="bd-text">{bd}</span>
+      <div class="logo">iDrawBook</div>
+    </div>
+    <div class="header-right">
+      <!-- Future extension -->
+    </div>
   </header>
 
   <!-- Menu Bar -->
   <div class="menu-bar">
+    <button class="menu-icon-btn" id="menu-header-toggle-left" data-tooltip="Toggle Left Sidebar (^L)"></button>
+    <div class="v-separator"></div>
+
     <div class="menu-item" data-menu="file">
       <span>BOOK</span>
       <div class="menu-dropdown">
         <button id="menu-new">New Book</button>
         <button id="menu-open">Open Book <span class="shortcut text-todo">[TODO]</span></button>
         <button id="menu-close">Close Book <span class="shortcut text-todo">[TODO]</span></button>
-        <button id="menu-delete">Delete Book <span class="shortcut text-todo">[TODO]</span></button>
+        <button id="menu-delete">Delete Book </button>
         <button id="menu-save">Save Book</button>
         <button id="menu-recent">Recent Books <span class="shortcut text-todo">[TODO]</span></button>
         <div class="menu-separator"></div>
@@ -78,6 +86,10 @@
         <button id="menu-contacts">Contacts</button>
       </div>
     </div>
+
+    <div class="menu-spacer"></div>
+    <div class="v-separator"></div>
+    <button class="menu-icon-btn" id="menu-header-toggle-right" data-tooltip="Toggle Right Sidebar (^R)"></button>
   </div>
 
   <main class="main-container">
@@ -87,12 +99,19 @@
         <button class="tool-btn" id="tool-brush" data-tool="brush" data-tooltip="Brush (^B)"></button>
         <button class="tool-btn" id="tool-pen" data-tool="pen" data-tooltip="Pen"></button>
         <button class="tool-btn" id="tool-fill" data-tool="fill" data-tooltip="Fill Color (F)"></button>
+      </div>
+      <div class="h-separator"></div>
+      <div class="tool-group">
         <button class="tool-btn" id="tool-eraser" data-tool="eraser" data-tooltip="Eraser (^E)"></button>
       </div>
+      <div class="h-separator"></div>
       <div class="tool-group" id="shape-tools">
         <button class="tool-btn" id="tool-line" data-tool="line" data-tooltip="Line"></button>
         <button class="tool-btn" id="tool-rect" data-tool="rect" data-tooltip="Rectangle"></button>
         <button class="tool-btn" id="tool-circle" data-tool="circle" data-tooltip="Circle"></button>
+      </div>
+      <div class="h-separator"></div>
+      <div class="tool-group">
         <button class="tool-btn" id="tool-hand" data-tool="hand" data-tooltip="Hand (^H)"></button>
         <button class="tool-btn" id="tool-move" data-tool="move" data-tooltip="Move (^M)"></button>
       </div>
@@ -107,7 +126,13 @@
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
-      <div id="zoom-level">100%</div>
+      <div class="zoom-controls">
+        <div id="zoom-level">100%</div>
+        <div class="v-separator"></div>
+        <button id="zoom-out-btn" class="zoom-btn" data-tooltip="Zoom Out"></button>
+        <div class="v-separator"></div>
+        <button id="zoom-in-btn" class="zoom-btn" data-tooltip="Zoom In"></button>
+      </div>
     </section>
 
     <aside class="properties-panel">
@@ -142,17 +167,8 @@
           <span class="chevron-icon" id="icon-chevron-color"></span>
         </div>
         <div class="prop-content">
-          <div class="color-grid">
-            <div class="color-swatch active" style="background: #000000;" data-color="#000000"></div>
-            <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
-            <div class="color-swatch" style="background: #FF3B30;" data-color="#FF3B30"></div>
-            <div class="color-swatch" style="background: #FF9500;" data-color="#FF9500"></div>
-            <div class="color-swatch" style="background: #FFCC00;" data-color="#FFCC00"></div>
-            <div class="color-swatch" style="background: #34C759;" data-color="#34C759"></div>
-            <div class="color-swatch" style="background: #007AFF;" data-color="#007AFF"></div>
-            <div class="color-swatch" style="background: #5856D6;" data-color="#5856D6"></div>
-            <div class="color-swatch" style="background: #AF52DE;" data-color="#AF52DE"></div>
-            <div class="color-swatch" style="background: #A2845E;" data-color="#A2845E"></div>
+          <div class="color-grid" id="color-grid">
+            <!-- Swatches injected dynamically -->
           </div>
           <div class="custom-color-picker">
             <input type="color" id="color-picker" value="#000000">
@@ -248,6 +264,14 @@
           <label>Preview Limit</label>
           <input type="number" id="preview-limit" value="100" min="1" max="100">
           <span class="hint">Max number of previews to show.</span>
+        </div>
+        <div class="input-group">
+          <label>Total Colors in Palette</label>
+          <input type="number" id="color-count" value="20" min="1" max="100">
+        </div>
+        <div class="input-group">
+          <label>Max Colors per Row</label>
+          <input type="number" id="color-columns" value="10" min="1" max="20">
         </div>
       </div>
       <div class="modal-footer">
