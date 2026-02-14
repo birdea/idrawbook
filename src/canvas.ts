@@ -147,14 +147,16 @@ export class CanvasManager {
 
     private setupContext(ctx: CanvasRenderingContext2D) {
         ctx.lineWidth = this.config.size;
-        ctx.strokeStyle = this.config.color;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.globalAlpha = this.config.opacity / 100;
 
-        if (this.currentTool === 'eraser' && ctx === this.worldCtx) {
-            ctx.globalCompositeOperation = 'destination-out';
+        if (this.currentTool === 'eraser') {
+            ctx.strokeStyle = '#ffffff';
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
         } else {
+            ctx.strokeStyle = this.config.color;
+            ctx.globalAlpha = this.config.opacity / 100;
             ctx.globalCompositeOperation = 'source-over';
         }
     }
@@ -309,7 +311,7 @@ export class CanvasManager {
                 this.worldCtx.closePath();
                 // Push StrokeAction
                 if (this.currentStrokePoints.length > 0) {
-                    this.historyManager.push(new StrokeAction([...this.currentStrokePoints], this.config));
+                    this.historyManager.push(new StrokeAction([...this.currentStrokePoints], this.config, this.currentTool));
                 }
             } else {
                 // Finalize shape on world canvas

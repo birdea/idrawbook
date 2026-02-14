@@ -1,4 +1,4 @@
-import type { ToolConfig, Point } from './tools';
+import type { ToolConfig, Point, DrawingTool } from './tools';
 import { ToolUtils } from './tools';
 
 export type ActionType = 'stroke' | 'line' | 'rect' | 'circle';
@@ -13,10 +13,12 @@ export class StrokeAction implements DrawingAction {
     type: ActionType = 'stroke';
     points: Point[];
     config: ToolConfig;
+    tool: DrawingTool;
 
-    constructor(points: Point[], config: ToolConfig) {
+    constructor(points: Point[], config: ToolConfig, tool: DrawingTool) {
         this.points = points; // Copy of points
         this.config = { ...config };
+        this.tool = tool;
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -24,10 +26,18 @@ export class StrokeAction implements DrawingAction {
 
         ctx.beginPath();
         ctx.lineWidth = this.config.size;
-        ctx.strokeStyle = this.config.color;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.globalAlpha = this.config.opacity / 100;
+
+        if (this.tool === 'eraser') {
+            ctx.strokeStyle = '#ffffff';
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+        } else {
+            ctx.strokeStyle = this.config.color;
+            ctx.globalAlpha = this.config.opacity / 100;
+            ctx.globalCompositeOperation = 'source-over';
+        }
 
         if (this.points.length === 1) {
             // Draw a dot
@@ -40,6 +50,8 @@ export class StrokeAction implements DrawingAction {
             }
         }
         ctx.stroke();
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
     }
 }
 
