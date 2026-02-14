@@ -99,58 +99,87 @@
 
     <section class="canvas-wrapper" id="canvas-container">
       <canvas id="main-canvas"></canvas>
+      <button id="add-page-btn" data-tooltip="Add Page">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
       <div id="zoom-level">100%</div>
     </section>
 
     <aside class="properties-panel">
-      <div class="prop-section">
-        <h3>Stroke</h3>
-        <div class="prop-control">
-          <label>Size</label>
-          <input type="range" id="stroke-size" min="1" max="50" value="5">
+      <div class="prop-section collapsible" id="section-stroke">
+        <div class="prop-header">
+          <h3>Stroke</h3>
+          <span class="chevron-icon" id="icon-chevron-stroke"></span>
         </div>
-        <div class="prop-control">
-          <label>Opacity</label>
-          <input type="range" id="stroke-opacity" min="1" max="100" value="100">
-        </div>
-        <div class="prop-control">
-          <label>Hardness</label>
-          <input type="range" id="stroke-hardness" min="0" max="100" value="100">
-        </div>
-        <div class="prop-control">
-          <label>Pressure Sensitivity</label>
-          <input type="range" id="stroke-pressure" min="0" max="100" value="50">
-        </div>
-      </div>
-
-      <div class="prop-section">
-        <h3>Color</h3>
-        <div class="color-grid">
-          <div class="color-swatch active" style="background: #000000;" data-color="#000000"></div>
-          <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
-          <div class="color-swatch" style="background: #FF3B30;" data-color="#FF3B30"></div>
-          <div class="color-swatch" style="background: #FF9500;" data-color="#FF9500"></div>
-          <div class="color-swatch" style="background: #FFCC00;" data-color="#FFCC00"></div>
-          <div class="color-swatch" style="background: #34C759;" data-color="#34C759"></div>
-          <div class="color-swatch" style="background: #007AFF;" data-color="#007AFF"></div>
-          <div class="color-swatch" style="background: #5856D6;" data-color="#5856D6"></div>
-          <div class="color-swatch" style="background: #AF52DE;" data-color="#AF52DE"></div>
-          <div class="color-swatch" style="background: #A2845E;" data-color="#A2845E"></div>
-        </div>
-        <div class="custom-color-picker">
-          <input type="color" id="color-picker" value="#000000">
+        <div class="prop-content">
+          <div class="prop-control">
+            <label>Size</label>
+            <input type="range" id="stroke-size" min="1" max="50" value="5">
+          </div>
+          <div class="prop-control">
+            <label>Opacity</label>
+            <input type="range" id="stroke-opacity" min="1" max="100" value="100">
+          </div>
+          <div class="prop-control">
+            <label>Hardness</label>
+            <input type="range" id="stroke-hardness" min="0" max="100" value="100">
+          </div>
+          <div class="prop-control">
+            <label>Pressure Sensitivity</label>
+            <input type="range" id="stroke-pressure" min="0" max="100" value="50">
+          </div>
         </div>
       </div>
 
-      <div class="prop-section">
-        <h3>Canvas</h3>
-        <div class="prop-control">
-          <label>Width</label>
-          <span id="canvas-width">2048 px</span>
+      <div class="prop-section collapsible" id="section-color">
+        <div class="prop-header">
+          <h3>Color</h3>
+          <span class="chevron-icon" id="icon-chevron-color"></span>
         </div>
-        <div class="prop-control">
-          <label>Height</label>
-          <span id="canvas-height">2048 px</span>
+        <div class="prop-content">
+          <div class="color-grid">
+            <div class="color-swatch active" style="background: #000000;" data-color="#000000"></div>
+            <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
+            <div class="color-swatch" style="background: #FF3B30;" data-color="#FF3B30"></div>
+            <div class="color-swatch" style="background: #FF9500;" data-color="#FF9500"></div>
+            <div class="color-swatch" style="background: #FFCC00;" data-color="#FFCC00"></div>
+            <div class="color-swatch" style="background: #34C759;" data-color="#34C759"></div>
+            <div class="color-swatch" style="background: #007AFF;" data-color="#007AFF"></div>
+            <div class="color-swatch" style="background: #5856D6;" data-color="#5856D6"></div>
+            <div class="color-swatch" style="background: #AF52DE;" data-color="#AF52DE"></div>
+            <div class="color-swatch" style="background: #A2845E;" data-color="#A2845E"></div>
+          </div>
+          <div class="custom-color-picker">
+            <input type="color" id="color-picker" value="#000000">
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-section collapsible" id="section-canvas">
+        <div class="prop-header">
+          <h3>Canvas</h3>
+          <span class="chevron-icon" id="icon-chevron-canvas"></span>
+        </div>
+        <div class="prop-content">
+          <div class="prop-control">
+            <span id="canvas-info" style="font-size: 14px; font-weight: 500; color: var(--apple-text);">Page (1/1) :
+              1024 x 1024 px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-section collapsible" id="section-preview">
+        <div class="prop-header">
+          <h3>Preview</h3>
+          <span class="chevron-icon" id="icon-chevron-preview"></span>
+        </div>
+        <div class="prop-content">
+          <div class="preview-list" id="preview-list">
+          </div>
         </div>
       </div>
     </aside>
@@ -253,6 +282,11 @@
           <input type="number" id="history-limit" value="100" min="10" max="500">
           <span class="hint">Max number of actions to remember.</span>
         </div>
+        <div class="input-group">
+          <label>Preview Limit</label>
+          <input type="number" id="preview-limit" value="100" min="1" max="100">
+          <span class="hint">Max number of previews to show.</span>
+        </div>
       </div>
       <div class="modal-footer">
         <button id="settings-cancel-btn" class="btn-text">Cancel</button>
@@ -271,16 +305,40 @@
       <div class="modal-body">
         <div class="input-group">
           <label>Width (px)</label>
-          <input type="number" id="new-book-width" value="2048" min="100" max="10000">
+          <input type="number" id="new-book-width" value="1024" min="100" max="10000">
         </div>
         <div class="input-group">
           <label>Height (px)</label>
-          <input type="number" id="new-book-height" value="2048" min="100" max="10000">
+          <input type="number" id="new-book-height" value="1024" min="100" max="10000">
         </div>
       </div>
       <div class="modal-footer">
         <button id="new-book-cancel-btn" class="btn-text">Cancel</button>
         <button id="new-book-create-btn" class="btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Page Modal -->
+  <div id="new-page-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>New Page</h3>
+        <button id="new-page-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Width (px)</label>
+          <input type="number" id="new-page-width" value="1024" min="100" max="5000">
+        </div>
+        <div class="input-group">
+          <label>Height (px)</label>
+          <input type="number" id="new-page-height" value="1024" min="100" max="5000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="new-page-cancel-btn" class="btn-text">Cancel</button>
+        <button id="new-page-create-btn" class="btn-primary">Add Page</button>
       </div>
     </div>
   </div>

@@ -5,14 +5,111 @@ import type { DrawingTool } from './tools';
 import { GoogleService, type GoogleUser } from './google';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const canvasManager = new CanvasManager('main-canvas');
+  // Declare canvasManager first to avoid TDZ in updatePreview
+  let canvasManager: CanvasManager;
 
-  // --- Canvas Info Initialization ---
-  const worldSize = canvasManager.getWorldSize();
-  const widthDisplay = document.getElementById('canvas-width');
-  const heightDisplay = document.getElementById('canvas-height');
-  if (widthDisplay) widthDisplay.textContent = `${worldSize.width} px`;
-  if (heightDisplay) heightDisplay.textContent = `${worldSize.height} px`;
+  // function to update the preview list (thumbnails)
+  const updatePreview = () => {
+    if (!canvasManager) return;
+    // We need to re-render the list entirely or just update?
+    // User wants a list of all pages.
+    const previewList = document.querySelector('.preview-list');
+    if (!previewList) return;
+
+    // Get all pages
+    const pages = canvasManager.getPages();
+
+    // Naive re-render for simplicity, or smart diff?
+    // Let's try to match by ID to avoid flickering.
+
+    // First, remove items not in pages
+    const currentItems = Array.from(previewList.children) as HTMLElement[];
+    currentItems.forEach(item => {
+      const id = item.dataset.pageId;
+      if (!pages.find(p => p.id === id)) {
+        item.remove();
+      }
+    });
+
+    // Get active ID
+    const activePageId = canvasManager.getActivePageId();
+
+    // Add or update
+    pages.forEach((page, index) => {
+      let item = previewList.querySelector(`.preview-item[data-page-id="${page.id}"]`) as HTMLElement;
+
+      if (!item) {
+        item = document.createElement('div');
+        item.className = 'preview-item';
+        item.dataset.pageId = page.id;
+        item.addEventListener('click', () => {
+          canvasManager.focusPage(page.id);
+        });
+        previewList.appendChild(item);
+      }
+
+      // Update active state
+      if (page.id === activePageId) {
+        item.classList.add('active');
+        // Smooth scroll preview into view if needed
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        item.classList.remove('active');
+      }
+
+      // Update thumbnail content repeatedly?
+      // Optimization: valid thumbnail only changes on 'update'.
+      // ...
+      const thumbUrl = canvasManager.getThumbnail(100, page.id);
+      item.innerHTML = `
+        <div class="preview-thumb-container">
+          <img src="${thumbUrl}" alt="Page ${index + 1}">
+        </div>
+        <div class="preview-info">
+          <div class="page-title">Page ${index + 1}</div>
+          <div class="page-size">${page.width} x ${page.height} px</div>
+        </div>
+        <button class="delete-page-btn" title="Remove Page">${ICONS.x}</button>
+      `;
+
+      // Add listener to delete button
+      item.querySelector('.delete-page-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Remove this page?')) {
+          canvasManager.removePage(page.id);
+        }
+      });
+    });
+
+    // Prune if limit exceeded (User feature from before)
+    // Actually, "Book has 0 to n items". User requests scrollable list.
+    // The "Limit" feature from previous session might conflict?
+    // If that limit was for "number of historic snapshots", we might need to rethink.
+    // But now we have "Pages".
+    // Let's assume "Preview Limit" is deprecated or applies to something else,
+    // OR we just show all pages. The requirement "Canvas가 추가되면 ... preview 리스트에 ... 노출돼" implies ALL pages.
+    // So I will ignore the limit for the list of CURRENT PAGES.
+
+    // --- Update Canvas Info display ---
+    const canvasInfoDisplay = document.getElementById('canvas-info');
+    if (canvasInfoDisplay) {
+      const activeIdx = pages.findIndex(p => p.id === activePageId);
+      const activePage = pages[activeIdx];
+      if (activePage) {
+        canvasInfoDisplay.textContent = `Page (${activeIdx + 1}/${pages.length}) : ${activePage.width} x ${activePage.height} px`;
+      } else {
+        canvasInfoDisplay.textContent = `Page (0/0) : 0 x 0 px`;
+      }
+    }
+  };
+
+  // Initialize Canvas Manager with onUpdate callback
+  canvasManager = new CanvasManager('main-canvas', () => {
+    updatePreview();
+  });
+
+  // Initial preview
+  updatePreview();
 
   // --- Google Integration ---
   const googleService = new GoogleService((user: GoogleUser | null) => {
@@ -34,6 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
     'google-login-btn': ICONS.google,
     'export-main-btn': ICONS.download,
     'menu-google-icon': ICONS.google,
+    'icon-chevron-stroke': ICONS.chevron,
+    'icon-chevron-color': ICONS.chevron,
+    'icon-chevron-canvas': ICONS.chevron,
+    'icon-chevron-preview': ICONS.chevron,
   };
 
   Object.entries(iconMap).forEach(([id, svg]) => {
@@ -45,6 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = svg;
       }
     }
+  });
+
+  // --- Collapsible Sections Logic ---
+  const collapsibleHeaders = document.querySelectorAll('.prop-header');
+  collapsibleHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.closest('.prop-section');
+      if (section) {
+        section.classList.toggle('collapsed');
+      }
+    });
   });
 
   // --- Menu Bar Logic ---
@@ -107,7 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (confirm('Create new book? Unsaved changes will be lost.')) {
-      canvasManager.resizeWorld(width, height);
+      canvasManager.clearBook();
+      canvasManager.addPage(width, height);
 
       // Update UI
       const wDisplay = document.getElementById('canvas-width');
@@ -140,11 +253,37 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('settings-save-btn')?.addEventListener('click', () => {
     const limitInput = document.getElementById('history-limit') as HTMLInputElement;
     const limit = parseInt(limitInput.value);
+
+    const previewLimitInput = document.getElementById('preview-limit') as HTMLInputElement;
+    const pLimit = parseInt(previewLimitInput.value);
+
+    let valid = true;
+
     if (limit && limit >= 10 && limit <= 500) {
       canvasManager.setHistoryLimit(limit);
-      settingsClose();
     } else {
+      valid = false;
       alert('Please enter a valid history limit (10-500).');
+    }
+
+    let previewLimit = 100; // Default
+
+    if (pLimit && pLimit >= 1 && pLimit <= 100) {
+      previewLimit = pLimit;
+      // Prune immediately
+      const previewList = document.querySelector('.preview-list');
+      if (previewList) {
+        while (previewList.children.length > previewLimit) {
+          previewList.lastChild?.remove();
+        }
+      }
+    } else {
+      if (valid) alert('Please enter a valid preview limit (1-100).'); // Only alert if history was valid to avoid double alert
+      valid = false;
+    }
+
+    if (valid) {
+      settingsClose();
     }
   });
 
@@ -508,5 +647,44 @@ document.addEventListener('DOMContentLoaded', () => {
       colorPicker.value = color;
       updateActiveSwatch(color);
     });
+  });
+
+  // --- New Page Logic ---
+  const addPageBtn = document.getElementById('add-page-btn');
+  const newPageModal = document.getElementById('new-page-modal');
+  const newPageClose = document.getElementById('new-page-close');
+  const newPageCancel = document.getElementById('new-page-cancel-btn');
+  const newPageCreate = document.getElementById('new-page-create-btn');
+
+  addPageBtn?.addEventListener('click', () => {
+    newPageModal?.classList.remove('hidden');
+    // Default to current page size or 1024
+    const size = canvasManager.getPixelSize();
+    const wInput = document.getElementById('new-page-width') as HTMLInputElement;
+    const hInput = document.getElementById('new-page-height') as HTMLInputElement;
+    if (wInput) wInput.value = (size.width || 1024).toString();
+    if (hInput) hInput.value = (size.height || 1024).toString();
+  });
+
+  const closeNewPageModal = () => {
+    newPageModal?.classList.add('hidden');
+  };
+
+  newPageClose?.addEventListener('click', closeNewPageModal);
+  newPageCancel?.addEventListener('click', closeNewPageModal);
+
+  newPageCreate?.addEventListener('click', () => {
+    const wInput = document.getElementById('new-page-width') as HTMLInputElement;
+    const hInput = document.getElementById('new-page-height') as HTMLInputElement;
+
+    const width = parseInt(wInput.value) || 1024;
+    const height = parseInt(hInput.value) || 1024;
+
+    // Limit max size
+    const w = Math.min(Math.max(width, 100), 5000);
+    const h = Math.min(Math.max(height, 100), 5000);
+
+    canvasManager.addPage(w, h);
+    closeNewPageModal();
   });
 });
