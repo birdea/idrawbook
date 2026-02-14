@@ -94,6 +94,7 @@
         <button class="tool-btn" id="tool-rect" data-tool="rect" data-tooltip="Rectangle"></button>
         <button class="tool-btn" id="tool-circle" data-tool="circle" data-tooltip="Circle"></button>
         <button class="tool-btn" id="tool-hand" data-tool="hand" data-tooltip="Hand (^H)"></button>
+        <button class="tool-btn" id="tool-move" data-tool="move" data-tooltip="Move (^M)"></button>
       </div>
     </aside>
 
@@ -213,58 +214,19 @@
   </div>
 
   <!-- Mobile Bottom Bar (Visible only on mobile) -->
-  <div class="mobile-bottom-bar hidden-desktop">
-    <button id="mobile-btn-stroke">Stroke</button>
-    <button id="mobile-btn-color">Color</button>
+  <div class="mobile-bottom-bar hidden-desktop" id="mobile-bottom-bar">
+    <!-- Buttons will be injected dynamically -->
   </div>
 
-  <!-- Mobile Stroke Modal -->
-  <div id="mobile-stroke-modal" class="modal-overlay hidden">
+  <!-- Mobile Generic Section Modal -->
+  <div id="mobile-generic-modal" class="modal-overlay hidden">
     <div class="modal-content bottom-sheet">
       <div class="modal-header">
-        <h3>Stroke Settings</h3>
-        <button id="mobile-stroke-close" class="close-btn">&times;</button>
+        <h3 id="mobile-modal-title">Settings</h3>
+        <button id="mobile-modal-close" class="close-btn">&times;</button>
       </div>
-      <div class="modal-body">
-        <!-- Content injected dynamically or duplicated from sidebar -->
-        <div class="prop-section">
-          <div class="prop-control">
-            <label>Size</label>
-            <input type="range" id="mobile-stroke-size" min="1" max="50" value="5">
-          </div>
-          <div class="prop-control">
-            <label>Opacity</label>
-            <input type="range" id="mobile-stroke-opacity" min="1" max="100" value="100">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mobile Color Modal -->
-  <div id="mobile-color-modal" class="modal-overlay hidden">
-    <div class="modal-content bottom-sheet">
-      <div class="modal-header">
-        <h3>Color Settings</h3>
-        <button id="mobile-color-close" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="color-grid" id="mobile-color-grid">
-          <!-- Duplicated color swatches for mobile -->
-          <div class="color-swatch active" style="background: #000000;" data-color="#000000"></div>
-          <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF"></div>
-          <div class="color-swatch" style="background: #FF3B30;" data-color="#FF3B30"></div>
-          <div class="color-swatch" style="background: #FF9500;" data-color="#FF9500"></div>
-          <div class="color-swatch" style="background: #FFCC00;" data-color="#FFCC00"></div>
-          <div class="color-swatch" style="background: #34C759;" data-color="#34C759"></div>
-          <div class="color-swatch" style="background: #007AFF;" data-color="#007AFF"></div>
-          <div class="color-swatch" style="background: #5856D6;" data-color="#5856D6"></div>
-          <div class="color-swatch" style="background: #AF52DE;" data-color="#AF52DE"></div>
-          <div class="color-swatch" style="background: #A2845E;" data-color="#A2845E"></div>
-        </div>
-        <div class="custom-color-picker">
-          <input type="color" id="mobile-color-picker" value="#000000">
-        </div>
+      <div class="modal-body" id="mobile-modal-body">
+        <!-- Section content will be moved here dynamically -->
       </div>
     </div>
   </div>
