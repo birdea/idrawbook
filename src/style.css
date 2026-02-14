@@ -744,3 +744,100 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .hidden {
   display: none !important;
 }
+
+/* Mobile UI */
+.mobile-bottom-bar {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    height: calc(100vh - 44px) !important;
+    /* Adjust for menu bar */
+    overflow: hidden;
+  }
+
+  /* Hide the desktop properties panel on mobile */
+  .properties-panel {
+    display: none !important;
+  }
+
+  /* Keep tool panel absolute or maybe move it? Keep as is but adjust top/left */
+  .tool-panel {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    height: auto;
+    z-index: 100;
+  }
+
+  .canvas-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  /* Show mobile bottom bar */
+  .mobile-bottom-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--apple-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: var(--panel-shadow);
+    border: 0.5px solid var(--apple-border);
+    gap: 16px;
+    z-index: 1000;
+  }
+
+  .mobile-bottom-bar button {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--apple-text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .mobile-bottom-bar button:active {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  /* Make modal behave like bottom sheet on mobile */
+  .modal-content.bottom-sheet {
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    width: 100vw;
+    max-width: 100vw;
+    border-radius: 20px 20px 0 0;
+    animation: slideUp 0.3s ease-out;
+    margin: 0;
+    top: auto;
+    transform: none;
+    /* Override centered modal transform */
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+}
