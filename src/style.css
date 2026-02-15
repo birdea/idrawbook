@@ -1295,3 +1295,155 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: var(--apple-accent);
   font-size: 18px;
 }
+
+/* Button Secondary */
+.btn-secondary {
+  background: white;
+  color: var(--apple-text);
+  border: 1px solid var(--apple-border);
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Save Modal Styles */
+.filename-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--apple-border);
+  border-radius: 8px;
+  padding: 0 8px;
+}
+
+.filename-input-wrapper input {
+  border: none;
+  flex: 1;
+  height: 32px;
+  outline: none;
+  font-size: 13px;
+  background: transparent;
+}
+
+.extension-label {
+  color: var(--apple-text-secondary);
+  font-size: 13px;
+  user-select: none;
+}
+
+.format-options {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.save-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 500px) {
+  .save-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-block {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--apple-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-block h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--apple-text-secondary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.status-badge {
+  font-size: 10px;
+  background: #34C759;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.folder-select-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--apple-text-secondary);
+  background: rgba(128, 128, 128, 0.05);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.folder-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--apple-accent);
+  cursor: pointer;
+  padding: 0;
+  font-size: 11px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-separator {
+  height: 1px;
+  background: var(--apple-border);
+  margin: 16px 0;
+}
+
+/* Ensure hidden utility is present if not already */
+.hidden {
+  display: none !important;
+}
