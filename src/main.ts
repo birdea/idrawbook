@@ -274,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('menu-header-toggle-right');
     if (btn) {
       btn.innerHTML = isPortrait ? ICONS.sidebarBottom : ICONS.sidebarRight;
-      btn.setAttribute('data-tooltip', isPortrait ? 'Toggle Bottom Bar (^R)' : 'Toggle Right Sidebar (^R)');
     }
 
     const menuBtn = document.getElementById('menu-toggle-right');
