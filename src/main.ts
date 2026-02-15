@@ -27,6 +27,58 @@ document.addEventListener('DOMContentLoaded', () => {
   // Declare canvasManager first to avoid TDZ in updatePreview
   let canvasManager: CanvasManager;
 
+  // Tool State Management
+  let lastTool: DrawingTool = 'pencil'; // Track previous tool for toggling
+  let currentActiveTool: DrawingTool = 'pencil';
+
+  interface ToolState {
+    size: number;
+    color: string;
+    opacity: number;
+    hardness: number;
+    pressure: number;
+  }
+
+  const toolStates: Record<string, ToolState> = {
+    pencil: { size: 5, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    brush: { size: 10, color: '#000000', opacity: 100, hardness: 50, pressure: 50 },
+    pen: { size: 2, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    eraser: { size: 20, color: '#ffffff', opacity: 100, hardness: 100, pressure: 50 },
+    fill: { size: 0, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    line: { size: 2, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    rect: { size: 2, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    circle: { size: 2, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+    text: { size: 12, color: '#000000', opacity: 100, hardness: 100, pressure: 50 },
+  };
+
+  const updateGlobalIndicator = () => {
+    const indicator = document.getElementById('global-tool-indicator');
+    if (!indicator) return;
+
+    if (toolStates[currentActiveTool]) {
+      const state = toolStates[currentActiveTool];
+      const colorEl = indicator.querySelector('.tool-indicator-color') as HTMLElement;
+      const sizeEl = indicator.querySelector('.tool-indicator-size') as HTMLElement;
+
+      indicator.style.display = 'flex'; // Show when applicable tool is active
+
+      if (colorEl) colorEl.style.backgroundColor = state.color;
+
+      if (sizeEl) {
+        // Show size for all tools that have state (pencil, brush, pen, eraser, line, rect, circle, text)
+        // Fill might have size 0, maybe hide if 0?
+        if (state.size === 0 && currentActiveTool === 'fill') {
+          sizeEl.style.display = 'none';
+        } else {
+          sizeEl.style.display = 'block';
+          sizeEl.textContent = state.size.toString();
+        }
+      }
+    } else {
+      indicator.style.display = 'none'; // Hide for tools without state (e.g. hand)
+    }
+  };
+
   // function to update the preview list (thumbnails)
   const updatePreview = () => {
     if (!canvasManager) return;
@@ -157,6 +209,12 @@ document.addEventListener('DOMContentLoaded', () => {
         canvasManager.setConfig({ color });
         const colorPicker = document.getElementById('color-picker') as HTMLInputElement;
         if (colorPicker) colorPicker.value = color;
+
+
+        if (toolStates[currentActiveTool]) {
+          toolStates[currentActiveTool].color = color;
+          updateGlobalIndicator();
+        }
       });
       grid.appendChild(swatch);
     }
@@ -168,8 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initial preview
+  // Initial preview
   updatePreview();
   generatePalette();
+  generatePalette();
+  // Initialize indicators
+  updateGlobalIndicator();
 
   // Zoom Buttons
   document.getElementById('zoom-in-btn')?.addEventListener('click', () => canvasManager.zoomIn());
@@ -459,15 +521,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Existing App Logic ---
 
-  let lastTool: DrawingTool = 'pencil'; // Track previous tool for toggling
+  // switchTool moved below, definitions moved up
+
 
   function switchTool(tool: DrawingTool) {
+    // Save state of current tool if applicable
+    // But since we update state on input change, we might not need to explicit "save" here 
+    // unless inputs can change without updating state (which we will prevent).
+    // Actually, we should ensuring inputs reflect the NEW tool's state.
+
     // If switching TO hand, save current tool if it's NOT hand
     if (tool === 'hand') {
       const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool') as DrawingTool;
       if (currentActive && currentActive !== 'hand') {
         lastTool = currentActive;
       }
+    }
+
+    currentActiveTool = tool;
+
+    // Apply state if exists
+    if (toolStates[tool]) {
+      const state = toolStates[tool];
+      canvasManager.setConfig(state);
+
+      // Update UI Inputs
+      if (sizeInput) sizeInput.value = state.size.toString();
+      if (opacityInput) opacityInput.value = state.opacity.toString();
+      if (hardnessInput) hardnessInput.value = state.hardness.toString();
+      if (pressureInput) pressureInput.value = state.pressure.toString();
+      if (colorPicker) colorPicker.value = state.color;
+
+      updateActiveSwatch(state.color);
     }
 
     toolButtons.forEach(btn => {
@@ -478,6 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     canvasManager.setTool(tool);
+    updateGlobalIndicator();
   }
 
   const toolButtons = document.querySelectorAll('.tool-btn[data-tool]');
@@ -486,8 +572,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const tool = btn.getAttribute('data-tool') as DrawingTool;
 
       if (tool === 'text') {
+        // Allow selection to show indicator, but still show TODO toast
         showToast('TODO : Under Development');
-        return;
+        // Fallthrough to switchTool to update indicator
       }
 
       // If clicking Hand button specifically
@@ -551,23 +638,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const opacityInput = document.getElementById('stroke-opacity') as HTMLInputElement;
   const colorPicker = document.getElementById('color-picker') as HTMLInputElement;
 
-  sizeInput.oninput = (e) => canvasManager.setConfig({ size: parseInt((e.target as HTMLInputElement).value) });
-  opacityInput.oninput = (e) => canvasManager.setConfig({ opacity: parseInt((e.target as HTMLInputElement).value) });
+  sizeInput.oninput = (e) => {
+    const val = parseInt((e.target as HTMLInputElement).value);
+    canvasManager.setConfig({ size: val });
+    if (toolStates[currentActiveTool]) {
+      toolStates[currentActiveTool].size = val;
+      updateGlobalIndicator();
+    }
+  };
+  opacityInput.oninput = (e) => {
+    const val = parseInt((e.target as HTMLInputElement).value);
+    canvasManager.setConfig({ opacity: val });
+    if (toolStates[currentActiveTool]) {
+      toolStates[currentActiveTool].opacity = val;
+    }
+  };
 
   const hardnessInput = document.getElementById('stroke-hardness') as HTMLInputElement;
   const pressureInput = document.getElementById('stroke-pressure') as HTMLInputElement;
 
   if (hardnessInput) {
-    hardnessInput.oninput = (e) => canvasManager.setConfig({ hardness: parseInt((e.target as HTMLInputElement).value) });
+    hardnessInput.oninput = (e) => {
+      const val = parseInt((e.target as HTMLInputElement).value);
+      canvasManager.setConfig({ hardness: val });
+      if (toolStates[currentActiveTool]) {
+        toolStates[currentActiveTool].hardness = val;
+      }
+    };
   }
 
   if (pressureInput) {
-    pressureInput.oninput = (e) => canvasManager.setConfig({ pressure: parseInt((e.target as HTMLInputElement).value) });
+    pressureInput.oninput = (e) => {
+      const val = parseInt((e.target as HTMLInputElement).value);
+      canvasManager.setConfig({ pressure: val });
+      if (toolStates[currentActiveTool]) {
+        toolStates[currentActiveTool].pressure = val;
+      }
+    };
   }
   colorPicker.onchange = (e) => {
     const color = (e.target as HTMLInputElement).value;
     canvasManager.setConfig({ color });
     updateActiveSwatch(color);
+    if (toolStates[currentActiveTool]) {
+      toolStates[currentActiveTool].color = color;
+      updateGlobalIndicator();
+    }
   };
 
   function updateActiveSwatch(color: string) {
