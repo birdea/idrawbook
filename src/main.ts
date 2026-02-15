@@ -498,6 +498,25 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('menu-toggle-left')?.addEventListener('click', toggleLeftToolbar);
   document.getElementById('menu-toggle-right')?.addEventListener('click', toggleRightToolbar);
 
+  // --- Global Indicator Interaction ---
+  document.getElementById('global-tool-indicator')?.addEventListener('click', () => {
+    if (propPanel.style.display === 'none') {
+      // Case 1: Panel is hidden. Show it and expand sections.
+      toggleRightToolbar();
+
+      const sectionStroke = document.getElementById('section-stroke');
+      const sectionColor = document.getElementById('section-color');
+
+      sectionStroke?.classList.remove('collapsed');
+      sectionColor?.classList.remove('collapsed');
+
+      propPanel.scrollTop = 0;
+    } else {
+      // Case 2: Panel is visible. Hide it.
+      toggleRightToolbar();
+    }
+  });
+
   // Header/Menu Bar Toggles
   document.getElementById('menu-header-toggle-left')?.addEventListener('click', toggleLeftToolbar);
   document.getElementById('menu-header-toggle-right')?.addEventListener('click', toggleRightToolbar);
