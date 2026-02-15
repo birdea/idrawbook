@@ -4,6 +4,7 @@ import type { DrawingTool, ToolConfig, Point } from './tools';
 import { ToolUtils } from './tools';
 import { HistoryManager, StrokeAction, ShapeAction, FillAction } from './history';
 import type { DrawingAction } from './history';
+import { TextTool, TextAction } from './text-tool';
 
 export interface Page {
     id: string;
@@ -42,6 +43,9 @@ export class CanvasManager {
     private currentStrokePoints: Point[] = [];
     private onUpdate: ((pageId?: string) => void) | null = null;
 
+    // Text Tool
+    private textTool: TextTool | null = null;
+
     // Helper to generate unique IDs
     private generateId(): string {
         return Math.random().toString(36).substr(2, 9);
@@ -61,6 +65,40 @@ export class CanvasManager {
 
         // History
         this.historyManager = new HistoryManager();
+
+        // Text Tool
+        this.textTool = new TextTool(
+            'canvas-container',
+            () => ({
+                scale: this.scale,
+                offsetX: this.offset.x,
+                offsetY: this.offset.y,
+            }),
+            () => this.canvas.getBoundingClientRect(),
+            (action: TextAction, replaceIndex: number) => {
+                const page = this.pages.get(action.placement.pageId);
+                if (!page) return;
+
+                if (replaceIndex >= 0) {
+                    // Re-edit: replace or remove existing action
+                    if (action.text.trim().length === 0) {
+                        // Text was cleared — remove the action
+                        this.historyManager.removeAction(replaceIndex);
+                    } else {
+                        this.historyManager.replaceAction(replaceIndex, action);
+                    }
+                    // Full redraw since we modified history in-place
+                    this.redraw(this.historyManager.getActions());
+                } else {
+                    // New text action
+                    action.draw(page.ctx);
+                    this.historyManager.push(action);
+                    this.render();
+                }
+                this.onUpdate?.(action.placement.pageId);
+            },
+            this.config
+        );
 
         this.resize();
         this.setupListeners();
@@ -274,6 +312,10 @@ export class CanvasManager {
         this.render();
     }
     public setTool(tool: DrawingTool) {
+        // Commit text if switching away from text tool
+        if (this.currentTool === 'text' && tool !== 'text' && this.textTool?.isEditing()) {
+            this.textTool.commitText();
+        }
         this.currentTool = tool;
         this.updateCursor();
     }
@@ -281,6 +323,8 @@ export class CanvasManager {
     private updateCursor() {
         if (this.currentTool === 'hand') {
             this.canvas.style.cursor = 'grab';
+        } else if (this.currentTool === 'text') {
+            this.canvas.style.cursor = 'text';
         } else {
             this.canvas.style.cursor = 'crosshair';
         }
@@ -288,6 +332,7 @@ export class CanvasManager {
 
     public setConfig(config: Partial<ToolConfig>) {
         this.config = { ...this.config, ...config };
+        this.textTool?.updateToolConfig(this.config);
     }
 
     private setupContext(ctx: CanvasRenderingContext2D) {
@@ -316,6 +361,12 @@ export class CanvasManager {
 
     private handleWheel(e: WheelEvent) {
         e.preventDefault();
+
+        // Commit text before zoom
+        if (this.textTool?.isEditing()) {
+            this.textTool.commitText();
+        }
+
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
@@ -382,6 +433,52 @@ export class CanvasManager {
             return;
         }
 
+        // Text tool handling
+        if (this.currentTool === 'text') {
+            if (targetPage) {
+                this.activePageId = targetPage.id;
+                if (this.textTool?.isEditing()) {
+                    this.textTool.commitText();
+                }
+                const localPos = {
+                    x: worldPos.x - targetPage.x,
+                    y: worldPos.y - targetPage.y,
+                };
+                const pageInfo = { x: targetPage.x, y: targetPage.y, width: targetPage.width, height: targetPage.height };
+
+                // Hit-test existing TextActions for re-editing
+                const actions = this.historyManager.getActions();
+                let hitIndex = -1;
+                let hitAction: TextAction | null = null;
+                for (let i = actions.length - 1; i >= 0; i--) {
+                    const a = actions[i];
+                    if (a instanceof TextAction && a.pageId === targetPage.id) {
+                        if (a.hitTest(localPos.x, localPos.y, targetPage.ctx)) {
+                            hitIndex = i;
+                            hitAction = a;
+                            break;
+                        }
+                    }
+                }
+
+                if (hitAction !== null && hitIndex >= 0) {
+                    // Re-edit existing text
+                    this.textTool?.startReEditing(hitAction, hitIndex, pageInfo);
+                } else {
+                    // New text editing
+                    this.textTool?.startEditing(
+                        { pageId: targetPage.id, localX: localPos.x, localY: localPos.y },
+                        pageInfo
+                    );
+                }
+            } else {
+                if (this.textTool?.isEditing()) {
+                    this.textTool.commitText();
+                }
+            }
+            return;
+        }
+
         if (!targetPage) {
             // Clicked on empty space
             this.activePageId = null;
@@ -437,6 +534,10 @@ export class CanvasManager {
         const y = e.clientY - rect.top;
 
         if (this.isPanning) {
+            // Commit text before panning
+            if (this.textTool?.isEditing()) {
+                this.textTool.commitText();
+            }
             this.offset.x += x - this.lastMousePos.x;
             this.offset.y += y - this.lastMousePos.y;
             this.lastMousePos = { x, y };
