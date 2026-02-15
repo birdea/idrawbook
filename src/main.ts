@@ -193,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'tool-rect': ICONS.rect,
     'tool-circle': ICONS.circle,
     'tool-hand': ICONS.hand,
-    'tool-move': ICONS.move,
     'google-login-btn': ICONS.google,
     'export-main-btn': ICONS.download,
     'menu-google-icon': ICONS.google,
@@ -463,10 +462,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastTool: DrawingTool = 'pencil'; // Track previous tool for toggling
 
   function switchTool(tool: DrawingTool) {
-    // If switching TO hand or move, save current tool if it's NOT hand/move
-    if (tool === 'hand' || tool === 'move') {
+    // If switching TO hand, save current tool if it's NOT hand
+    if (tool === 'hand') {
       const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool') as DrawingTool;
-      if (currentActive && currentActive !== 'hand' && currentActive !== 'move') {
+      if (currentActive && currentActive !== 'hand') {
         lastTool = currentActive;
       }
     }
@@ -491,8 +490,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // If clicking Hand or Move button specifically
-      if (tool === 'hand' || tool === 'move') {
+      // If clicking Hand button specifically
+      if (tool === 'hand') {
         const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
         if (currentActive === tool) {
           // If already active, toggle back
@@ -537,14 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
           switchTool('fill');
           break;
         case 'm':
-          e.preventDefault();
-          // Toggle Move
-          const currentMove = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
-          if (currentMove === 'move') {
-            switchTool(lastTool);
-          } else {
-            switchTool('move');
-          }
+          // Move shortcut removed as per requirement merging into Hand
           break;
         case 't':
           e.preventDefault();

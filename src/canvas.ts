@@ -279,8 +279,6 @@ export class CanvasManager {
     private updateCursor() {
         if (this.currentTool === 'hand') {
             this.canvas.style.cursor = 'grab';
-        } else if (this.currentTool === 'move') {
-            this.canvas.style.cursor = 'move';
         } else {
             this.canvas.style.cursor = 'crosshair';
         }
@@ -341,13 +339,12 @@ export class CanvasManager {
         const y = e.clientY - rect.top;
         this.lastMousePos = { x, y };
 
-        // Right button or Middle button or Hand tool for panning
-        if (e.button === 1 || e.button === 2 || this.currentTool === 'hand') {
+        // Right button or Middle button for panning
+        if (e.button === 1 || e.button === 2) {
             this.isPanning = true;
             this.canvas.style.cursor = 'grabbing';
             return;
         }
-
 
         this.startPoint = this.screenToWorld(x, y);
         // Include pressure in start point
@@ -369,19 +366,15 @@ export class CanvasManager {
             }
         }
 
-        if (this.currentTool === 'move') {
+        if (this.currentTool === 'hand') {
             if (targetPage) {
                 this.activePageId = targetPage.id;
                 this.isMovingPage = true;
                 this.canvas.style.cursor = 'move';
                 this.onUpdate?.(targetPage.id);
-                return;
-            } else if (this.activePageId) {
-                // If clicked on empty space but have active page, move the active one?
-                // Or just don't move. Usually move tool requires clicking ON the object.
-                // Let's allow moving the active one even if clicking empty space, 
-                // OR just return. Let's return to be safe.
-                return;
+            } else {
+                this.isPanning = true;
+                this.canvas.style.cursor = 'grabbing';
             }
             return;
         }
