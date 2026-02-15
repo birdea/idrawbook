@@ -262,10 +262,30 @@ document.addEventListener('DOMContentLoaded', () => {
     'icon-chevron-color': ICONS.chevron,
     'icon-chevron-canvas': ICONS.chevron,
     'menu-header-toggle-left': ICONS.sidebarLeft,
-    'menu-header-toggle-right': ICONS.sidebarRight,
+    // 'menu-header-toggle-right' handled dynamically below
     'zoom-in-btn': ICONS.plus,
     'zoom-out-btn': ICONS.minus,
   };
+
+  const updateOrientationIcons = () => {
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    const btn = document.getElementById('menu-header-toggle-right');
+    if (btn) {
+      btn.innerHTML = isPortrait ? ICONS.sidebarBottom : ICONS.sidebarRight;
+      btn.setAttribute('data-tooltip', isPortrait ? 'Toggle Bottom Bar (^R)' : 'Toggle Right Sidebar (^R)');
+    }
+
+    const menuBtn = document.getElementById('menu-toggle-right');
+    const panel = document.querySelector('.properties-panel') as HTMLElement;
+    if (menuBtn && panel) {
+      const label = isPortrait ? 'Bottom Bar' : 'Toolbar (R)';
+      const isHidden = panel.style.display === 'none';
+      const verb = isHidden ? 'Show' : 'Hide';
+      menuBtn.innerHTML = `${verb} ${label} <span class="shortcut">^R</span>`;
+    }
+  };
+  window.addEventListener('resize', updateOrientationIcons);
+
 
   Object.entries(iconMap).forEach(([id, svg]) => {
     const btn = document.getElementById(id);
@@ -462,12 +482,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleRightToolbar() {
     const btn = document.getElementById('menu-toggle-right')!;
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    const label = isPortrait ? 'Bottom Bar' : 'Toolbar (R)';
+
     if (propPanel.style.display === 'none') {
       propPanel.style.display = 'flex';
-      btn.innerHTML = 'Hide Toolbar (R) <span class="shortcut">^R</span>';
+      btn.innerHTML = `Hide ${label} <span class="shortcut">^R</span>`;
     } else {
       propPanel.style.display = 'none';
-      btn.innerHTML = 'Show Toolbar (R) <span class="shortcut">^R</span>';
+      btn.innerHTML = `Show ${label} <span class="shortcut">^R</span>`;
     }
   }
 
@@ -858,52 +881,9 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedFolderId = '';
     saveModal?.classList.remove('hidden');
   });
-  // --- Dynamic Mobile UI Logic ---
-  const mobileBottomBar = document.getElementById('mobile-bottom-bar');
-  const mobileGenericModal = document.getElementById('mobile-generic-modal');
-  const mobileModalTitle = document.getElementById('mobile-modal-title');
-  const mobileModalBody = document.getElementById('mobile-modal-body');
-  const mobileModalClose = document.getElementById('mobile-modal-close');
+  // --- Dynamic Icon Update check ---
+  updateOrientationIcons();
 
-  let currentActiveSection: HTMLElement | null = null;
-  let originalParent: HTMLElement | null = null;
-
-  function closeMobileModal() {
-    if (currentActiveSection && originalParent) {
-      originalParent.appendChild(currentActiveSection);
-    }
-    mobileGenericModal?.classList.add('hidden');
-    currentActiveSection = null;
-    originalParent = null;
-  }
-
-  mobileModalClose?.addEventListener('click', closeMobileModal);
-  mobileGenericModal?.addEventListener('click', (e) => {
-    if (e.target === mobileGenericModal) closeMobileModal();
-  });
-
-  // Find all sections in the properties panel
-  const propSections = document.querySelectorAll('.properties-panel .prop-section');
-  propSections.forEach(section => {
-    const title = section.querySelector('h3')?.textContent || 'Section';
-    const content = section.querySelector('.prop-content') as HTMLElement;
-
-    if (content && mobileBottomBar) {
-      const btn = document.createElement('button');
-      btn.textContent = title;
-      btn.addEventListener('click', () => {
-        if (mobileModalTitle) mobileModalTitle.textContent = `${title} Settings`;
-        if (mobileModalBody) {
-          mobileModalBody.innerHTML = ''; // Clear
-          originalParent = content.parentElement;
-          currentActiveSection = content;
-          mobileModalBody.appendChild(content);
-        }
-        mobileGenericModal?.classList.remove('hidden');
-      });
-      mobileBottomBar.appendChild(btn);
-    }
-  });
 
   // --- New Page Logic ---
   const addPageBtn = document.getElementById('add-page-btn');
