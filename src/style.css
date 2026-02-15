@@ -392,7 +392,13 @@ header {
   backdrop-filter: blur(2px);
   opacity: 0.9;
   z-index: 10;
-  pointer-events: none;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.global-tool-indicator:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .tool-indicator-color {
@@ -705,37 +711,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   height: 14px;
 }
 
-#add-page-btn {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--apple-surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 0.5px solid var(--apple-border);
-  box-shadow: var(--panel-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--apple-text);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
-}
 
-#add-page-btn:hover {
-  transform: scale(1.1);
-  background: var(--apple-accent);
-  color: white;
-}
-
-#add-page-btn svg {
-  width: 24px;
-  height: 24px;
-}
 
 /* Google & User Styles */
 
@@ -1263,10 +1239,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     z-index: 100;
   }
 
-  #add-page-btn {
-    left: 88px;
-    top: 12px;
-  }
+
 
   .zoom-controls {
     top: 12px;
