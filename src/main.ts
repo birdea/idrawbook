@@ -582,8 +582,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (aboutBtn) aboutBtn.textContent = `About ${APP_CONFIG.APP_NAME}`;
 
 
-
-
   // --- Existing App Logic ---
 
   // switchTool moved below, definitions moved up
@@ -636,12 +634,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const tool = btn.getAttribute('data-tool') as DrawingTool;
 
-      if (tool === 'text') {
-        // Allow selection to show indicator, but still show TODO toast
-        showToast('TODO : Under Development');
-        // Fallthrough to switchTool to update indicator
-      }
-
       // If clicking Hand button specifically
       if (tool === 'hand') {
         const currentActive = document.querySelector('.tool-btn.active')?.getAttribute('data-tool');
@@ -692,7 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
         case 't':
           e.preventDefault();
-          showToast('TODO : Under Development');
+          switchTool('text');
           break;
         // Existing View/Edit shortcuts handled elsewhere (z, l, r)
       }

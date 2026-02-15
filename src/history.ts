@@ -1,7 +1,7 @@
 import type { ToolConfig, Point, DrawingTool } from './tools';
 import { ToolUtils } from './tools';
 
-export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill';
+export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill' | 'text';
 
 export interface DrawingAction {
     type: ActionType;
@@ -112,6 +112,22 @@ export class HistoryManager {
         const action = this.redoStack.pop()!;
         this.undoStack.push(action);
         return [...this.undoStack]; // Return all actions to redraw
+    }
+
+    /** Replace an action at a specific index (for re-editing text) */
+    public replaceAction(index: number, newAction: DrawingAction): void {
+        if (index >= 0 && index < this.undoStack.length) {
+            this.undoStack[index] = newAction;
+            this.redoStack = [];
+        }
+    }
+
+    /** Remove an action at a specific index (e.g. cleared text during re-edit) */
+    public removeAction(index: number): void {
+        if (index >= 0 && index < this.undoStack.length) {
+            this.undoStack.splice(index, 1);
+            this.redoStack = [];
+        }
     }
 
     public getActions(): DrawingAction[] {
