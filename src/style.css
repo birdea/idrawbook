@@ -429,6 +429,8 @@ header {
   background: white;
   border-radius: 4px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  touch-action: none;
+  /* Prevent browser handling of gestures */
 }
 
 /* Sidebar Controls */
@@ -643,7 +645,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* Minimal Tooltip */
 .zoom-controls {
   position: absolute;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
   background: var(--apple-surface);
   backdrop-filter: var(--glass-blur);
@@ -694,7 +696,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 #add-page-btn {
   position: absolute;
   top: 24px;
-  right: 24px;
+  left: 24px;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -1226,6 +1228,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
     right: 0;
     bottom: 0;
     z-index: 1;
+  }
+
+  #add-page-btn {
+    left: 88px;
+    /* Avoid overlapping with absolute tool-panel (12+64+12) */
   }
 
   /* Show mobile bottom bar */
