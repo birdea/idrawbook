@@ -261,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'icon-chevron-stroke': ICONS.chevron,
     'icon-chevron-color': ICONS.chevron,
     'icon-chevron-canvas': ICONS.chevron,
+    'icon-arrow-preview': ICONS.chevronRight,
     'menu-header-toggle-left': ICONS.sidebarLeft,
     // 'menu-header-toggle-right' handled dynamically below
     'zoom-in-btn': ICONS.plus,
