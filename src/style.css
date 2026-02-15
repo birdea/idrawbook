@@ -481,6 +481,18 @@ header {
   margin-bottom: 0;
 }
 
+.prop-header-arrow {
+  margin-left: auto;
+  color: var(--apple-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.prop-header-arrow svg {
+  width: 14px;
+  height: 14px;
+}
+
 .chevron-icon {
   width: 16px;
   height: 16px;
@@ -1211,31 +1223,34 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
 
   /* Transform Right Sidebar to Bottom Bar */
+  /* Transform Right Sidebar to Bottom Bar */
   .properties-panel {
+    position: absolute;
+    /* Float over content */
+    bottom: 0;
+    left: 88px;
+    right: 88px;
     width: auto;
-    /* changed from 100% to auto to respect margins */
-    margin-left: 88px;
-    /* 12px (pos) + 64px (width) + 12px (gap) */
-    margin-right: 88px;
-    /* Symmetric margin */
     height: auto;
     max-height: 40vh;
     min-height: auto;
     flex-direction: column;
     border-left: 0.5px solid var(--apple-border);
-    /* restore border for floating look */
     border-right: 0.5px solid var(--apple-border);
-    /* restore border for floating look */
     border-top: 0.5px solid var(--apple-border);
     border-radius: 20px 20px 0 0;
     padding: 12px 16px;
-    order: 2;
-    /* Ensure it stays at bottom */
+    /* order: 2; - removed as it's absolute now */
     display: flex;
     /* Override any hide */
     overflow-y: auto;
     padding-bottom: safe-area-inset-bottom;
     /* For iPhone home bar */
+    z-index: 200;
+    /* Overlap canvas */
+    background: var(--apple-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
   }
 
   /* Tool panel positioning for mobile/portrait */
