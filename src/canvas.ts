@@ -335,6 +335,7 @@ export class CanvasManager {
     }
 
     private handlePointerDown(e: PointerEvent) {
+        e.preventDefault(); // Prevent native behavior
         this.canvas.setPointerCapture(e.pointerId);
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -427,6 +428,10 @@ export class CanvasManager {
     }
 
     private handlePointerMove(e: PointerEvent) {
+        // Prevent default if we are active
+        if (this.isPanning || this.isMovingPage || this.isDrawing) {
+            e.preventDefault();
+        }
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -515,6 +520,7 @@ export class CanvasManager {
     }
 
     private handlePointerUp(e: PointerEvent) {
+        e.preventDefault();
         if (this.isPanning) {
             this.isPanning = false;
             this.updateCursor();
