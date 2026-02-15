@@ -600,42 +600,98 @@ document.addEventListener('DOMContentLoaded', () => {
     canvasManager.exportImage();
   });
 
-  // Drive Modal
-  const driveModal = document.getElementById('drive-modal');
-  const filenameInput = document.getElementById('drive-filename') as HTMLInputElement;
-  const folderDisplayName = document.getElementById('selected-folder-name');
+  // Save Modal Logic
+  const saveModal = document.getElementById('save-modal');
+  const saveFilenameInput = document.getElementById('save-filename') as HTMLInputElement;
+  const saveExtLabel = document.getElementById('save-file-ext');
+  const saveFormatRadios = document.querySelectorAll('input[name="save-format"]');
+  const saveQualityGroup = document.getElementById('save-quality-group');
+  const saveQualityInput = document.getElementById('save-quality') as HTMLInputElement;
+  const saveQualityDisplay = document.getElementById('quality-val-display');
+
+  const btnSaveLocal = document.getElementById('btn-save-local');
+  const btnSaveDrive = document.getElementById('btn-save-drive');
+  const selectedFolderName = document.getElementById('selected-folder-name');
+
   let selectedFolderId = '';
 
-  document.getElementById('export-drive-btn')?.addEventListener('click', async () => {
-    filenameInput.value = `iDrawBook_${Date.now()}.png`;
-    selectedFolderId = '';
-    if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
-    driveModal?.classList.remove('hidden');
+  const closeSaveModal = () => saveModal?.classList.add('hidden');
+  document.getElementById('save-modal-close')?.addEventListener('click', closeSaveModal);
+
+  // Format Change
+  saveFormatRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value;
+      if (saveExtLabel) saveExtLabel.textContent = `.${val === 'jpeg' ? 'jpg' : val}`;
+
+      if (val === 'png') {
+        saveQualityGroup?.classList.add('hidden');
+      } else {
+        saveQualityGroup?.classList.remove('hidden');
+      }
+    });
   });
 
+  // Quality Change
+  saveQualityInput?.addEventListener('input', () => {
+    if (saveQualityDisplay) saveQualityDisplay.textContent = `${saveQualityInput.value}%`;
+  });
+
+  // Save Local
+  btnSaveLocal?.addEventListener('click', async () => {
+    const filename = (saveFilenameInput.value || 'Untitled') + (saveExtLabel?.textContent || '.png');
+    const formatEl = document.querySelector('input[name="save-format"]:checked') as HTMLInputElement;
+    const format = formatEl ? formatEl.value : 'png';
+    const quality = parseInt(saveQualityInput.value) / 100;
+
+    const originalText = btnSaveLocal.innerHTML;
+    btnSaveLocal.textContent = 'Generating...';
+
+    // Default to 'png' if null
+    const blob = await canvasManager.getBlob((format || 'png') as any, quality);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      closeSaveModal();
+    }
+    btnSaveLocal.innerHTML = originalText;
+  });
+
+  // Folder Change
   document.getElementById('change-folder-btn')?.addEventListener('click', async () => {
     const folderId = await googleService.showPicker();
     if (folderId) {
       selectedFolderId = folderId;
-      if (folderDisplayName) folderDisplayName.textContent = 'Folder Selected';
+      if (selectedFolderName) selectedFolderName.textContent = 'Folder Selected';
     }
   });
 
-  const closeModal = () => driveModal?.classList.add('hidden');
-  document.getElementById('modal-close')!.onclick = closeModal;
-  document.getElementById('modal-cancel-btn')!.onclick = closeModal;
+  // Save Drive
+  btnSaveDrive?.addEventListener('click', async () => {
+    const filename = (saveFilenameInput.value || 'Untitled') + (saveExtLabel?.textContent || '.png');
+    const formatEl = document.querySelector('input[name="save-format"]:checked') as HTMLInputElement;
+    const format = formatEl ? formatEl.value : 'png';
+    const quality = parseInt(saveQualityInput.value) / 100;
 
-  const modalSave = document.getElementById('modal-save-btn');
-  if (modalSave) {
-    modalSave.onclick = async () => {
-      const filename = filenameInput.value || `iDrawBook_${Date.now()}.png`;
-      const blob = await canvasManager.getBlob();
-      if (blob) {
-        const success = await googleService.uploadToDrive(blob, filename, selectedFolderId);
-        if (success) closeModal();
+    const originalText = btnSaveDrive.innerHTML;
+    btnSaveDrive.textContent = 'Uploading...';
+
+    const blob = await canvasManager.getBlob((format || 'png') as any, quality);
+    if (blob) {
+      const success = await googleService.uploadToDrive(blob, filename, selectedFolderId);
+      if (success) {
+        showToast('Saved to Google Drive!');
+        closeSaveModal();
+      } else {
+        showToast('Upload failed.');
       }
-    };
-  }
+    }
+    btnSaveDrive.innerHTML = originalText;
+  });
 
   function updateGoogleUI(user: GoogleUser | null) {
     // Menu User UI
@@ -644,6 +700,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuAvatar = document.getElementById('menu-user-avatar') as HTMLImageElement;
     const menuName = document.getElementById('menu-user-name');
 
+    // Save Modal Drive Elements
+    const driveStatus = document.getElementById('drive-status');
+    const driveFolderUI = document.getElementById('drive-folder-ui');
+    const btnSaveDrive = document.getElementById('btn-save-drive');
+
     if (user) {
       // Menu
       menuLogin?.classList.add('hidden');
@@ -651,31 +712,35 @@ document.addEventListener('DOMContentLoaded', () => {
       if (menuAvatar) menuAvatar.src = user.picture;
       if (menuName) menuName.textContent = user.name;
 
+      // Save Modal
+      driveStatus?.classList.remove('hidden');
+      driveFolderUI?.classList.remove('hidden');
+      btnSaveDrive?.removeAttribute('disabled');
+
     } else {
       // Menu
       menuLogin?.classList.remove('hidden');
       menuInfo?.classList.add('hidden');
 
-      // Should likely close the modal if open, but existing logic handles modal access separately
-      // However, the modal is hidden if not logged in via old logic. 
-      // We should ensure modal hides if not logged in.
-      document.getElementById('drive-modal')?.classList.add('hidden');
+      // Save Modal
+      driveStatus?.classList.add('hidden');
+      driveFolderUI?.classList.add('hidden');
+      btnSaveDrive?.setAttribute('disabled', 'true');
     }
   }
 
   // New Save Book Logic (Trigger Export Modal)
+  // Menu Save
   document.getElementById('menu-save')?.addEventListener('click', () => {
-    // Check login first? Or just show modal and let modal logic handle?
-    // Let's just open the modal, consistent with old export-drive-btn
-    const filenameInput = document.getElementById('drive-filename') as HTMLInputElement;
-    const folderDisplayName = document.getElementById('selected-folder-name');
-
-    filenameInput.value = `iDrawBook_${Date.now()}.png`;
-    selectedFolderId = ''; // Keep previous folder? No, let's reset for now or keep var
-    // actually selectedFolderId is scoped in 'Drive Modal' block below which is not accessible here easily unless we move it up.
-    // Let's use the existing event listener block structure or move variables.
-    if (folderDisplayName) folderDisplayName.textContent = 'My Drive (Root)';
-    driveModal?.classList.remove('hidden');
+    if (saveFilenameInput && (!saveFilenameInput.value || saveFilenameInput.value === 'Untitled')) {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
+      saveFilenameInput.value = `iDrawBook_${dateStr}_${timeStr}`;
+    }
+    if (selectedFolderName) selectedFolderName.textContent = 'My Drive (Root)';
+    selectedFolderId = '';
+    saveModal?.classList.remove('hidden');
   });
   // --- Dynamic Mobile UI Logic ---
   const mobileBottomBar = document.getElementById('mobile-bottom-bar');

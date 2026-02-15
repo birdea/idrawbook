@@ -1,4 +1,6 @@
+import { jsPDF } from 'jspdf';
 import type { DrawingTool, ToolConfig, Point } from './tools';
+
 import { ToolUtils } from './tools';
 import { HistoryManager, StrokeAction, ShapeAction, FillAction } from './history';
 import type { DrawingAction } from './history';
@@ -657,14 +659,33 @@ export class CanvasManager {
         link.click();
     }
 
-    public getBlob(): Promise<Blob | null> {
+    public getBlob(format: 'png' | 'jpeg' | 'pdf' = 'png', quality: number = 0.9): Promise<Blob | null> {
         return new Promise(resolve => {
-            if (this.activePageId) {
-                this.pages.get(this.activePageId)!.canvas.toBlob(blob => {
-                    resolve(blob);
-                }, 'image/png');
-            } else {
+            if (!this.activePageId) {
                 resolve(null);
+                return;
+            }
+            const page = this.pages.get(this.activePageId)!;
+
+            if (format === 'pdf') {
+                const orientation = page.width > page.height ? 'l' : 'p';
+                // jsPDF expects dimensions in points or units, 'px' aligns 1:1 with canvas roughly if set correctly
+                const pdf = new jsPDF({
+                    orientation,
+                    unit: 'px',
+                    format: [page.width, page.height]
+                });
+
+                // Use JPEG for PDF to support compression/quality
+                // Note: jsPDF addImage might need base64 or other formats
+                const imgData = page.canvas.toDataURL('image/jpeg', quality);
+                pdf.addImage(imgData, 'JPEG', 0, 0, page.width, page.height);
+                resolve(pdf.output('blob'));
+            } else {
+                const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+                page.canvas.toBlob(blob => {
+                    resolve(blob);
+                }, mimeType, quality);
             }
         });
     }
