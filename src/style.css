@@ -76,7 +76,7 @@ header {
   font-size: 14.25px;
   font-weight: 500;
   color: var(--apple-text-secondary);
-  margin-right: 6px;
+  margin-left: 6px;
   display: inline-flex;
   align-items: center;
 }
@@ -1458,4 +1458,23 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* Ensure hidden utility is present if not already */
 .hidden {
   display: none !important;
+}
+
+/* Version Info */
+.version-info {
+  font-size: 11px;
+  color: var(--apple-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Version Display in Header */
+.version-display {
+  font-size: 10px;
+  color: var(--apple-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  margin-left: 6px;
+  opacity: 0.8;
+  align-self: flex-end;
+  /* Align nicely with text baseline if flex container */
+  margin-bottom: 2px;
 }

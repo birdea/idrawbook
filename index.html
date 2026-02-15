@@ -13,10 +13,11 @@
 <body>
   <header>
     <div class="header-left">
-      <span class="bd-text">{bd}</span>
       <div class="logo">iDrawBook</div>
     </div>
     <div class="header-right">
+      <span class="bd-text">{BD} creative </span>
+      <span class="version-display"></span>
       <!-- Future extension -->
     </div>
   </header>
@@ -335,9 +336,12 @@
           <input type="number" id="color-columns" value="10" min="1" max="20">
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="settings-cancel-btn" class="btn-text">Cancel</button>
-        <button id="settings-save-btn" class="btn-primary">Save Changes</button>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <span class="version-info"></span>
+        <div style="display: flex; gap: 10px;">
+          <button id="settings-cancel-btn" class="btn-text">Cancel</button>
+          <button id="settings-save-btn" class="btn-primary">Save Changes</button>
+        </div>
       </div>
     </div>
   </div>
