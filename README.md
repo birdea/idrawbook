@@ -1,71 +1,142 @@
-# iDrawBook 🎨
+# iDrawBook
 
-iDrawBook is a premium, web-based drawing application inspired by modern Apple design aesthetics. It offers a smooth drawing experience with integrated Google services, allowing you to save your creations directly to Google Drive.
+A web-based drawing application with an Apple-inspired design. Built with TypeScript and Vite, iDrawBook provides a multi-page canvas environment with a variety of creative tools, Google Drive integration, and a premium glassmorphism UI.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
 
-## ✨ Features
+## Features
 
-### 🖌️ Creative Tools
-- **Diverse Brushes**: Choose between Pencil, Brush, and Pen tools for different textures.
-- **Precision Shapes**: Draw perfect Lines, Rectangles, and Circles.
-- **Advanced Canvas**: World/Viewport architecture supporting smooth panning (Hand tool) and zooming.
+### Drawing Tools
+- **Freehand** -- Pencil, Brush, and Pen with pressure sensitivity, opacity, and hardness controls
+- **Shapes** -- Line, Rectangle, and Circle tools with real-time preview
+- **Fill** -- Flood fill with any color
+- **Eraser** -- Erase strokes by painting white
+- **Text** -- Multi-line text input with options popup (font size, color, line spacing, horizontal alignment), drag-to-move, and re-editing of committed text
+- **Hand** -- Pan the viewport and move pages on the canvas
 
-### ☁️ Google Integration
-- **Google Login**: Secure authentication with your Google account.
-- **Save to Drive**: Export your artwork as high-quality PNGs directly to your Google Drive.
-- **Google Picker**: Native folder selector for organizing your files seamlessly in the cloud.
+### Multi-Page Canvas
+- Create, delete, and navigate between multiple pages
+- Each page has independent resolution (width x height)
+- Zoom in/out with mouse wheel (centered on cursor)
+- Page thumbnails in the sidebar preview panel
 
-### 💎 Premium UI/UX
-- **Apple-inspired Design**: Clean, glassmorphic layout using modern CSS techniques.
-- **Dynamic Properties**: Real-time control over stroke size, opacity, and color.
-- **Responsive & Accessible**: Designed to feel like a native application in the browser.
+### History
+- Unlimited undo/redo (configurable limit via Settings)
+- Action-based replay system (strokes, shapes, fills, text)
 
-## 🚀 Getting Started
+### Save & Export
+- Download as PNG, JPEG, or PDF (via jsPDF)
+- Adjustable JPEG/PDF quality
+- Save directly to Google Drive with folder selection
+
+### Google Integration
+- Sign in with Google account
+- Google Drive file export with native folder picker
+- User profile display in the menu bar
+
+### UI/UX
+- Apple-style glassmorphism design with light/dark mode support
+- Collapsible sidebar sections (Stroke, Color, Canvas, Preview)
+- Customizable color palette with grid layout
+- Global tool indicator showing current color and size
+- Responsive portrait layout with bottom bar
+- Keyboard shortcuts for all major tools
+- Toast notifications
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | TypeScript (strict mode) |
+| Build | Vite 7 |
+| Styling | Vanilla CSS with CSS custom properties |
+| PDF Export | jsPDF |
+| Auth | Google Identity Services |
+| Deployment | Docker (nginx) |
+
+## Project Structure
+
+```
+src/
+  main.ts          # App entry point, DOM wiring, keyboard shortcuts
+  canvas.ts        # CanvasManager: multi-page canvas, viewport, pointer events
+  tools.ts         # DrawingTool types, ToolUtils (stroke rendering, shapes, flood fill)
+  history.ts       # HistoryManager, action classes (Stroke, Shape, Fill)
+  text-tool.ts     # TextTool class, TextAction, options popup, drag & re-edit
+  icons.ts         # SVG icon strings
+  config.ts        # App name and version config
+  google.ts        # Google OAuth and Drive API integration
+  style.css        # All styles (glassmorphism, tools, modals, text overlay, responsive)
+index.html         # Single-page HTML with modals and toolbar markup
+```
+
+## Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (latest LTS recommended)
-- [npm](https://www.npmjs.com/)
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- npm
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/birdea/idrawbook.git
-   cd idrawbook
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Install & Run
 
-### Development
-1. Start the development server:
-   ```bash
-   npm run dev
-   ```
-2. Open your browser and navigate to `http://localhost:5173`.
+```bash
+git clone https://github.com/birdea/idrawbook.git
+cd idrawbook
+npm install
+npm run dev
+```
 
-### 🔑 Google API Configuration
-To enable Google Drive export, you'll need to set up your own Google Cloud project:
-1. Obtain a **Client ID** and **API Key** from the [Google Cloud Console](https://console.cloud.google.com/).
-2. Enable **Google Drive API** and **Google Picker API**.
-3. Update the credentials in `src/google.ts`:
+Open `http://localhost:5173` in your browser.
+
+### Build
+
+```bash
+npm run build
+```
+
+Output is generated in the `dist/` directory.
+
+### Docker
+
+```bash
+docker build -t idrawbook .
+docker run -p 80:80 idrawbook
+```
+
+### Google API Setup
+
+To enable Google Drive export:
+
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable **Google Drive API** and **Google Picker API**
+3. Create OAuth 2.0 credentials (Client ID) and an API Key
+4. Update `src/google.ts` with your credentials:
    ```typescript
    private clientId = 'YOUR_CLIENT_ID';
    private apiKey = 'YOUR_API_KEY';
    ```
 
-## 🛠️ Built With
-- **TypeScript** - Core logic and type safety.
-- **Vite** - Lightning-fast build tool and dev server.
-- **Vanilla CSS** - Premium styling with glassmorphism effects.
-- **Google Identity Services** - Seamless OAuth 2.0 integration.
+## Keyboard Shortcuts
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+P` | Pencil |
+| `Ctrl+B` | Brush |
+| `F` | Fill |
+| `Ctrl+E` | Eraser |
+| `T` | Text |
+| `Ctrl+H` | Hand / Move |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Shift+Z` | Redo |
+| `Ctrl+L` | Toggle left toolbar |
+| `Ctrl+R` | Toggle right panel |
+
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 ---
-Built with ❤️ by [birdea](https://github.com/birdea)
+
+Built by [birdea](https://github.com/birdea)
