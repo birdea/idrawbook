@@ -3,6 +3,7 @@ import { CanvasManager } from './canvas';
 import { ICONS } from './icons';
 import type { DrawingTool } from './tools';
 import { GoogleService, type GoogleUser } from './google';
+import { APP_CONFIG } from './config';
 
 const showToast = (message: string) => {
   const container = document.getElementById('toast-container');
@@ -558,8 +559,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // HELP
   document.getElementById('menu-about')?.addEventListener('click', () => {
-    alert('iDrawBook v1.0.0\nA premium web-based drawing application.');
+    alert(`${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}\nA premium web-based drawing application.`);
   });
+
+  // Inject Version into Settings Modal
+  const versionEl = document.querySelector('.version-info');
+  if (versionEl) {
+    versionEl.textContent = `v${APP_CONFIG.VERSION}`;
+  }
+
+  // Inject Version into Header
+  const headerVersionEl = document.querySelector('.version-display');
+  if (headerVersionEl) {
+    headerVersionEl.textContent = `v${APP_CONFIG.VERSION}`;
+  }
+
+  // Update App Name from Config
+  document.title = APP_CONFIG.APP_NAME;
+  const logoEl = document.querySelector('.logo');
+  if (logoEl) logoEl.textContent = APP_CONFIG.APP_NAME;
+
+  const aboutBtn = document.getElementById('menu-about');
+  if (aboutBtn) aboutBtn.textContent = `About ${APP_CONFIG.APP_NAME}`;
+
+
 
 
   // --- Existing App Logic ---
