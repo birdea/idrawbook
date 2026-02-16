@@ -1,142 +1,115 @@
-# iDrawBook
+# iDrawBook 🎨
 
-A web-based drawing application with an Apple-inspired design. Built with TypeScript and Vite, iDrawBook provides a multi-page canvas environment with a variety of creative tools, Google Drive integration, and a premium glassmorphism UI.
+iDrawBook is a premium web-based drawing application inspired by Apple's design philosophy. Built with TypeScript and Vite, it offers a high-performance multi-page canvas environment, professional creative tools, Google Drive integration, and a sophisticated glassmorphism UI.
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
 
-## Features
+---
 
-### Drawing Tools
-- **Freehand** -- Pencil, Brush, and Pen with pressure sensitivity, opacity, and hardness controls
-- **Shapes** -- Line, Rectangle, and Circle tools with real-time preview
-- **Fill** -- Flood fill with any color
-- **Eraser** -- Erase strokes by painting white
-- **Text** -- Multi-line text input with options popup (font size, color, line spacing, horizontal alignment), drag-to-move, and re-editing of committed text
-- **Hand** -- Pan the viewport and move pages on the canvas
+## ✨ Features
 
-### Multi-Page Canvas
-- Create, delete, and navigate between multiple pages
-- Each page has independent resolution (width x height)
-- Zoom in/out with mouse wheel (centered on cursor)
-- Page thumbnails in the sidebar preview panel
+### 🛠 Creative Tools
+- **Freehand Drawing**: Support for Pencil, Brush, and Pen tools with adjustable pressure sensitivity, opacity, and hardness.
+- **Shape Tools**: Line, Rectangle, and Circle tools with real-time preview during creation.
+- **Smart Fill**: Flood fill any area with your selected color with a single click.
+- **Elite Text Tool**: Advanced multi-line text input with options for font size, color, line spacing, and alignment. Supports drag-and-drop movement and re-editing of committed text.
+- **Hand Tool**: Smoothly pan the viewport and rearrange pages on the canvas.
 
-### History
-- Unlimited undo/redo (configurable limit via Settings)
-- Action-based replay system (strokes, shapes, fills, text)
+### 📄 Multi-Page Canvas System
+- Create, manage, and navigate between multiple pages within a single document.
+- Independent resolution settings (Width x Height) for each page.
+- Smooth mouse-wheel zooming centered on the cursor.
+- Sidebar preview panel for quick navigation between pages.
 
-### Save & Export
-- Download as PNG, JPEG, or PDF (via jsPDF)
-- Adjustable JPEG/PDF quality
-- Save directly to Google Drive with folder selection
+### 💾 Save & Export
+- **Multiple Formats**: Export your work as PNG, JPEG, or PDF.
+- **Quality Control**: Adjust compression quality for JPEG and PDF exports.
+- **Google Drive Integration**: Sign in with your Google account to save files directly to specific folders in your Drive.
 
-### Google Integration
-- Sign in with Google account
-- Google Drive file export with native folder picker
-- User profile display in the menu bar
+### 🎨 Premium UI/UX
+- Elegant Apple-style Glassmorphism design.
+- Full support for both Dark and Light modes.
+- Efficiency-focused workspace with collapsible sidebar sections.
+- Responsive layout optimized for mobile devices with an intuitive bottom bar.
 
-### UI/UX
-- Apple-style glassmorphism design with light/dark mode support
-- Collapsible sidebar sections (Stroke, Color, Canvas, Preview)
-- Customizable color palette with grid layout
-- Global tool indicator showing current color and size
-- Responsive portrait layout with bottom bar
-- Keyboard shortcuts for all major tools
-- Toast notifications
+---
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Language | TypeScript (strict mode) |
-| Build | Vite 7 |
-| Styling | Vanilla CSS with CSS custom properties |
-| PDF Export | jsPDF |
-| Auth | Google Identity Services |
-| Deployment | Docker (nginx) |
-
-## Project Structure
-
-```
-src/
-  main.ts          # App entry point, DOM wiring, keyboard shortcuts
-  canvas.ts        # CanvasManager: multi-page canvas, viewport, pointer events
-  tools.ts         # DrawingTool types, ToolUtils (stroke rendering, shapes, flood fill)
-  history.ts       # HistoryManager, action classes (Stroke, Shape, Fill)
-  text-tool.ts     # TextTool class, TextAction, options popup, drag & re-edit
-  icons.ts         # SVG icon strings
-  config.ts        # App name and version config
-  google.ts        # Google OAuth and Drive API integration
-  style.css        # All styles (glassmorphism, tools, modals, text overlay, responsive)
-index.html         # Single-page HTML with modals and toolbar markup
-```
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (LTS recommended)
-- npm
+- npm (or yarn)
 
-### Install & Run
+### Installation & Execution
 
 ```bash
+# Clone the repository
 git clone https://github.com/birdea/idrawbook.git
+
+# Navigate to the project directory
 cd idrawbook
+
+# Install dependencies
 npm install
+
+# Run the development server
 npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
 
-### Build
+---
 
-```bash
-npm run build
-```
+## ⌨️ Keyboard Shortcuts
 
-Output is generated in the `dist/` directory.
-
-### Docker
-
-```bash
-docker build -t idrawbook .
-docker run -p 80:80 idrawbook
-```
-
-### Google API Setup
-
-To enable Google Drive export:
-
-1. Create a project in [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable **Google Drive API** and **Google Picker API**
-3. Create OAuth 2.0 credentials (Client ID) and an API Key
-4. Update `src/google.ts` with your credentials:
-   ```typescript
-   private clientId = 'YOUR_CLIENT_ID';
-   private apiKey = 'YOUR_API_KEY';
-   ```
-
-## Keyboard Shortcuts
+Streamline your workflow with these intuitive shortcuts:
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+P` | Pencil |
-| `Ctrl+B` | Brush |
-| `F` | Fill |
-| `Ctrl+E` | Eraser |
-| `T` | Text |
-| `Ctrl+H` | Hand / Move |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Shift+Z` | Redo |
-| `Ctrl+L` | Toggle left toolbar |
-| `Ctrl+R` | Toggle right panel |
+| `Ctrl + P` | Pencil |
+| `Ctrl + B` | Brush |
+| `Ctrl + F` | Fill Color |
+| `Ctrl + E` | Eraser |
+| `Ctrl + T` | Text Tool |
+| `Ctrl + H` | Hand Tool / Move |
+| `Ctrl + Z` | Undo |
+| `Ctrl + Shift + Z` | Redo |
+| `Ctrl + L` | Toggle Left Toolbar |
+| `Ctrl + R` | Toggle Right Panel |
 
-## License
+*Note: On Mac, these shortcuts also respond to the Command key.*
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Language** | TypeScript (Strict Mode) |
+| **Build Tool** | Vite 7 |
+| **Styling** | Vanilla CSS (CSS Variables) |
+| **Libraries** | jsPDF (PDF Generation), Vitest (Testing) |
+| **Integration** | Google Identity Services, Google Drive API |
+
+---
+
+## ☁️ Google API Setup (Optional)
+
+To enable Google Drive export functionality:
+
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable the **Google Drive API** and **Google Picker API**.
+3. Create OAuth 2.0 Client ID credentials and an API Key.
+4. Add your credentials to the configuration file (or `.env` if supported).
+
+---
+
+## 📄 License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 ---
-
-Built by [birdea](https://github.com/birdea)
+**Built with ❤️ by [birdea](https://github.com/birdea)**
