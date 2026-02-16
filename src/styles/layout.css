@@ -47,9 +47,9 @@ header {
 
 .header-icon-btn,
 .menu-icon-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     border: none;
     background: transparent;
     color: var(--apple-text);
@@ -69,8 +69,8 @@ header {
 
 .header-icon-btn svg,
 .menu-icon-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 }
 
 /* Menu Bar */
@@ -173,17 +173,17 @@ header {
 .v-separator {
     width: 1px;
     height: 20px;
-    background: var(--apple-text-secondary);
+    background: var(--apple-border);
     margin: 0 8px;
-    opacity: 0.2;
+    flex-shrink: 0;
 }
 
 .h-separator {
     width: 32px;
     height: 1px;
-    background: var(--apple-text-secondary);
-    margin: 4px 0;
-    opacity: 0.2;
+    background: var(--apple-border);
+    margin: 0;
+    flex-shrink: 0;
 }
 
 .menu-spacer {
