@@ -1,5 +1,5 @@
-import type { ToolConfig } from './tools';
-import type { DrawingAction, ActionType } from './history';
+import type { ToolConfig } from '../tools/types';
+import type { DrawingAction, ActionType } from './types';
 
 export interface TextConfig {
     fontSize: number;

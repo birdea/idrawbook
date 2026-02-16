@@ -1,6 +1,6 @@
 import './style.css';
 import { CanvasManager } from './canvas/canvas-manager';
-import type { DrawingTool } from './tools';
+import type { DrawingTool } from './tools/types';
 import { GoogleService, type GoogleUser } from './google';
 import { APP_CONFIG } from './config';
 

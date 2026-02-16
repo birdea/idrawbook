@@ -1,7 +1,7 @@
 import type { ICanvasContext, Page } from './types';
-import { ToolUtils } from '../tools';
+import { ToolUtils } from '../tools/tool-utils';
 import { StrokeAction, ShapeAction, FillAction } from '../history';
-import type { Point } from '../tools';
+import type { Point } from '../tools/types';
 
 /**
  * Handles all drawing operations: freehand strokes, shape drawing, and fill.

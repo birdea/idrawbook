@@ -1,8 +1,7 @@
-import type { ToolConfig } from './tools';
-import { ICONS } from './ui/svg-icons';
-import { TextAction } from './text-action';
-import type { TextConfig, TextPlacement } from './text-action';
-
+import type { ToolConfig } from './types';
+import { ICONS } from '../ui/svg-icons';
+import { TextAction } from '../actions/text-action';
+import type { TextConfig, TextPlacement } from '../actions/text-action';
 
 
 interface ViewportInfo {

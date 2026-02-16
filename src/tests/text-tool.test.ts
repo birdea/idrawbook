@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { TextTool } from '../text-tool';
-import { TextAction, type TextPlacement, type TextConfig } from '../text-action';
-import type { ToolConfig } from '../tools';
+import { TextTool } from '../tools/text-tool';
+import { TextAction, type TextPlacement, type TextConfig } from '../actions/text-action';
+import type { ToolConfig } from '../tools/types';
 
 describe('TextTool', () => {
     let container: HTMLElement;

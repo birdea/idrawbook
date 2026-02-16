@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ToolUtils, type ToolConfig, type Point } from '../tools';
+import { ToolUtils } from '../tools/tool-utils';
+import type { ToolConfig, Point } from '../tools/types';
 
 describe('ToolUtils', () => {
     let ctx: CanvasRenderingContext2D;

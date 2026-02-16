@@ -12,7 +12,7 @@ export interface Page {
 
 import type { DrawingTool, ToolConfig, Point } from '../tools';
 import type { HistoryManager } from '../history';
-import type { TextTool } from '../text-tool';
+import type { TextTool } from '../tools/text-tool';
 
 export interface ICanvasContext {
     canvas: HTMLCanvasElement;

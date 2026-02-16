@@ -1,5 +1,5 @@
 import type { Page } from './types';
-import type { Point } from '../tools';
+import type { Point } from '../tools/types';
 
 export class CanvasRenderer {
     private ctx: CanvasRenderingContext2D;

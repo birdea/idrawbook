@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HistoryManager, StrokeAction, ShapeAction, FillAction, type DrawingAction } from '../history';
-import { ToolUtils, type ToolConfig, type Point } from '../tools';
+import { ToolUtils } from '../tools/tool-utils';
+import type { ToolConfig, Point } from '../tools/types';
 
 describe('HistoryManager', () => {
     let history: HistoryManager;
