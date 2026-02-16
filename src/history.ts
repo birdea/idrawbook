@@ -18,7 +18,7 @@ export class StrokeAction implements DrawingAction {
     pageId: string;
 
     constructor(points: Point[], config: ToolConfig, tool: DrawingTool, pageId: string) {
-        this.points = points; // Copy of points
+        this.points = [...points];
         this.config = { ...config };
         this.tool = tool;
         this.pageId = pageId;

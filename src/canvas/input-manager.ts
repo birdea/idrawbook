@@ -88,7 +88,6 @@ export class InputManager {
             return;
         }
 
-        this.startPoint = this.context.screenToWorld(x, y);
         let pressure = e.pressure;
         if (e.pointerType === 'mouse') pressure = 0.5;
 
@@ -396,7 +395,7 @@ export class InputManager {
         }
     }
 
-    private updateCursor() {
+    public updateCursor() {
         if (this.context.currentTool === 'hand') {
             this.context.canvas.style.cursor = 'grab';
         } else if (this.context.currentTool === 'text') {

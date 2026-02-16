@@ -26,6 +26,7 @@ export class CanvasManager implements ICanvasContext {
     private _inputManager: InputManager;
 
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
+    public onZoomChange: ((zoomPercent: number) => void) | null = null;
 
     constructor(canvasId: string, onUpdate?: () => void) {
         this.onUpdateCallback = onUpdate || null;
@@ -56,8 +57,6 @@ export class CanvasManager implements ICanvasContext {
         );
 
         this._inputManager = new InputManager(this);
-        // Using it to satisfy lint
-        (window as any)._lastInputManager = this._inputManager;
 
         // Initialize
         this.resize();
@@ -69,15 +68,7 @@ export class CanvasManager implements ICanvasContext {
 
     // ICanvasContext Implementation
     public getPages(): Map<string, Page> {
-        // Expose underlying map for direct access by InputManager
-        // But PageManager encapsulates it.
-        // We should add a method to PageManager to return the map or expose it.
-        // Let's cast for now or update PageManager. 
-        // PageManager has `get(id)` and `getAll()`.
-        // InputManager iterates `this.context.getPages().values()`.
-        // I can change `getPages` to return `values()` iterator or array?
-        // Let's expose the map via a getter in PageManager.
-        return (this.pageManager as any).pages;
+        return this.pageManager.getPageMap();
     }
 
     public getActivePageId(): string | null {
@@ -139,10 +130,10 @@ export class CanvasManager implements ICanvasContext {
         this.render();
     }
 
-    public clear() {
+    public clear(pageWidth: number = 1024, pageHeight: number = 1024) {
         this.pageManager.clear();
         this.historyManager.clear();
-        this.addPage(1024, 1024);
+        this.addPage(pageWidth, pageHeight);
     }
 
     public undo() {
@@ -176,20 +167,7 @@ export class CanvasManager implements ICanvasContext {
             this.textTool.commitText();
         }
         this.currentTool = tool;
-        // Cursor update is handled in InputManager but we need to trigger it?
-        // Or we expose updateCursor in InputManager and call it.
-        // For now, let's just forcefully update cursor style here.
-        this.updateCursor();
-    }
-
-    private updateCursor() {
-        if (this.currentTool === 'hand') {
-            this.canvas.style.cursor = 'grab';
-        } else if (this.currentTool === 'text') {
-            this.canvas.style.cursor = 'text';
-        } else {
-            this.canvas.style.cursor = 'crosshair';
-        }
+        this._inputManager.updateCursor();
     }
 
     public setConfig(config: Partial<ToolConfig>) {
@@ -223,10 +201,7 @@ export class CanvasManager implements ICanvasContext {
     }
 
     private updateZoomIndicator() {
-        const indicator = document.getElementById('zoom-level');
-        if (indicator) {
-            indicator.textContent = `${Math.round(this.scale * 100)}%`;
-        }
+        this.onZoomChange?.(Math.round(this.scale * 100));
     }
 
     public exportImage() {

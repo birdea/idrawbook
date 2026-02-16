@@ -20,6 +20,10 @@ export class PageManager {
         return Array.from(this.pages.values());
     }
 
+    public getPageMap(): Map<string, Page> {
+        return this.pages;
+    }
+
     public getActivePageId(): string | null {
         return this.activePageId;
     }
