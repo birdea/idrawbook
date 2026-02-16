@@ -174,29 +174,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Shortcuts
   window.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      if (e.shiftKey) canvasManager.redo();
-      else canvasManager.undo();
-    }
-
-    if (e.metaKey || e.ctrlKey) {
+    // Check for Ctrl (and support Cmd as often requested by Mac users, but user specifically asked for Ctrl)
+    if (e.ctrlKey || e.metaKey) {
       const key = e.key.toLowerCase();
-      if (key === 'h') { e.preventDefault(); toolStateManager.toggleHandTool(); }
-      if (key === 'p') { e.preventDefault(); toolStateManager.switchTool('pencil'); }
-      if (key === 'b') { e.preventDefault(); toolStateManager.switchTool('brush'); }
-      if (key === 'e') { e.preventDefault(); toolStateManager.switchTool('eraser'); }
-      if (key === 'f') { e.preventDefault(); toolStateManager.switchTool('fill'); }
-      if (key === 't') { e.preventDefault(); toolStateManager.switchTool('text'); }
+
+      // Undo/Redo
+      if (key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) canvasManager.redo();
+        else canvasManager.undo();
+        return;
+      }
+
+      // Tool Switching
+      if (key === 'h') { e.preventDefault(); toolStateManager.toggleHandTool(); return; }
+      if (key === 'p') { e.preventDefault(); toolStateManager.switchTool('pencil'); return; }
+      if (key === 'b') { e.preventDefault(); toolStateManager.switchTool('brush'); return; }
+      if (key === 'e') { e.preventDefault(); toolStateManager.switchTool('eraser'); return; }
+      if (key === 'f') { e.preventDefault(); toolStateManager.switchTool('fill'); return; }
+      if (key === 't') { e.preventDefault(); toolStateManager.switchTool('text'); return; }
 
       // Toolbar toggles
       if (key === 'l') {
         e.preventDefault();
         toggleToolbar('left');
+        return;
       }
       if (key === 'r') {
         e.preventDefault();
         toggleToolbar('right');
+        return;
       }
     }
   });

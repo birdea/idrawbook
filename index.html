@@ -55,8 +55,8 @@
     <div class="menu-item" data-menu="edit">
       <span>EDIT</span>
       <div class="menu-dropdown">
-        <button id="menu-undo">Undo <span class="shortcut">⌘Z</span></button>
-        <button id="menu-redo">Redo <span class="shortcut">⌘⇧Z</span></button>
+        <button id="menu-undo">Undo <span class="shortcut">Ctrl+Z</span></button>
+        <button id="menu-redo">Redo <span class="shortcut">Ctrl+Shift+Z</span></button>
         <div class="menu-separator"></div>
         <button id="menu-cut">Cut <span class="shortcut text-todo">[TODO]</span></button>
         <button id="menu-copy">Copy <span class="shortcut text-todo">[TODO]</span></button>
@@ -70,8 +70,8 @@
     <div class="menu-item" data-menu="view">
       <span>VIEW</span>
       <div class="menu-dropdown">
-        <button id="menu-toggle-left">Hide Toolbar (L) <span class="shortcut">^L</span></button>
-        <button id="menu-toggle-right">Hide Toolbar (R) <span class="shortcut">^R</span></button>
+        <button id="menu-toggle-left">Hide Toolbar (L) <span class="shortcut">Ctrl+L</span></button>
+        <button id="menu-toggle-right">Hide Toolbar (R) <span class="shortcut">Ctrl+R</span></button>
       </div>
     </div>
     <div class="menu-item" data-menu="help">
@@ -105,14 +105,14 @@
       </div>
       <div class="h-separator"></div>
       <div class="tool-group" id="drawing-tools">
-        <button class="tool-btn active" id="tool-pencil" data-tool="pencil" data-tooltip="Pencil (^P)"></button>
-        <button class="tool-btn" id="tool-brush" data-tool="brush" data-tooltip="Brush (^B)"></button>
+        <button class="tool-btn active" id="tool-pencil" data-tool="pencil" data-tooltip="Pencil (Ctrl+P)"></button>
+        <button class="tool-btn" id="tool-brush" data-tool="brush" data-tooltip="Brush (Ctrl+B)"></button>
         <button class="tool-btn" id="tool-pen" data-tool="pen" data-tooltip="Pen"></button>
-        <button class="tool-btn" id="tool-fill" data-tool="fill" data-tooltip="Fill Color (F)"></button>
+        <button class="tool-btn" id="tool-fill" data-tool="fill" data-tooltip="Fill Color (Ctrl+F)"></button>
       </div>
       <div class="h-separator"></div>
       <div class="tool-group">
-        <button class="tool-btn" id="tool-eraser" data-tool="eraser" data-tooltip="Eraser (^E)"></button>
+        <button class="tool-btn" id="tool-eraser" data-tool="eraser" data-tooltip="Eraser (Ctrl+E)"></button>
       </div>
       <div class="h-separator"></div>
       <div class="tool-group" id="shape-tools">
@@ -122,11 +122,11 @@
       </div>
       <div class="h-separator"></div>
       <div class="tool-group">
-        <button class="tool-btn" id="tool-text" data-tool="text" data-tooltip="Text (T)"></button>
+        <button class="tool-btn" id="tool-text" data-tool="text" data-tooltip="Text (Ctrl+T)"></button>
       </div>
       <div class="h-separator"></div>
       <div class="tool-group">
-        <button class="tool-btn" id="tool-hand" data-tool="hand" data-tooltip="Hand (^H)"></button>
+        <button class="tool-btn" id="tool-hand" data-tool="hand" data-tooltip="Hand (Ctrl+H)"></button>
       </div>
     </aside>
 
@@ -134,9 +134,9 @@
       <canvas id="main-canvas"></canvas>
 
       <div class="history-controls">
-        <button id="main-undo-btn" class="icon-btn" data-tooltip="Undo (^Z)"></button>
+        <button id="main-undo-btn" class="icon-btn" data-tooltip="Undo (Ctrl+Z)"></button>
         <div class="v-separator"></div>
-        <button id="main-redo-btn" class="icon-btn" data-tooltip="Redo (^⇧Z)"></button>
+        <button id="main-redo-btn" class="icon-btn" data-tooltip="Redo (Ctrl+Shift+Z)"></button>
       </div>
 
       <div class="zoom-controls">
