@@ -41,17 +41,29 @@ export function injectIcons() {
 
 export function updateOrientationIcons() {
     const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-    const btn = document.getElementById('menu-header-toggle-right');
-    if (btn) {
-        btn.innerHTML = isPortrait ? ICONS.sidebarBottom : ICONS.sidebarRight;
+
+    // Right Toggle Icon
+    const rightBtn = document.getElementById('menu-header-toggle-right');
+    if (rightBtn) {
+        rightBtn.innerHTML = isPortrait ? ICONS.sidebarBottom : ICONS.sidebarRight;
     }
 
-    const menuBtn = document.getElementById('menu-toggle-right');
-    const panel = document.querySelector('.properties-panel') as HTMLElement;
-    if (menuBtn && panel) {
+    // Right Menu Label
+    const menuBtnR = document.getElementById('menu-toggle-right');
+    const panelR = document.querySelector('.properties-panel') as HTMLElement;
+    if (menuBtnR && panelR) {
         const label = isPortrait ? 'Bottom Bar' : 'Toolbar (R)';
-        const isHidden = panel.style.display === 'none';
+        const isHidden = panelR.style.display === 'none';
         const verb = isHidden ? 'Show' : 'Hide';
-        menuBtn.innerHTML = `${verb} ${label} <span class="shortcut">^R</span>`;
+        menuBtnR.innerHTML = `${verb} ${label} <span class="shortcut">^R</span>`;
+    }
+
+    // Left Menu Label
+    const menuBtnL = document.getElementById('menu-toggle-left');
+    const panelL = document.querySelector('.tool-panel') as HTMLElement;
+    if (menuBtnL && panelL) {
+        const isHidden = panelL.style.display === 'none';
+        const verb = isHidden ? 'Show' : 'Hide';
+        menuBtnL.innerHTML = `${verb} Toolbar (L) <span class="shortcut">^L</span>`;
     }
 }

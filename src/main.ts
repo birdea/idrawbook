@@ -157,6 +157,21 @@ document.addEventListener('DOMContentLoaded', () => {
     alert(`${APP_CONFIG.APP_NAME} v${APP_CONFIG.VERSION}\nA premium web-based drawing application.`);
   });
 
+  // Toolbar Toggles
+  const toggleToolbar = (side: 'left' | 'right') => {
+    const selector = side === 'left' ? '.tool-panel' : '.properties-panel';
+    const panel = document.querySelector(selector) as HTMLElement;
+    if (panel) {
+      panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+      updateOrientationIcons();
+    }
+  };
+
+  document.getElementById('menu-header-toggle-left')?.addEventListener('click', () => toggleToolbar('left'));
+  document.getElementById('menu-header-toggle-right')?.addEventListener('click', () => toggleToolbar('right'));
+  document.getElementById('menu-toggle-left')?.addEventListener('click', () => toggleToolbar('left'));
+  document.getElementById('menu-toggle-right')?.addEventListener('click', () => toggleToolbar('right'));
+
   // Shortcuts
   window.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
@@ -177,13 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Toolbar toggles
       if (key === 'l') {
         e.preventDefault();
-        const p = document.querySelector('.tool-panel') as HTMLElement;
-        if (p) p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+        toggleToolbar('left');
       }
       if (key === 'r') {
         e.preventDefault();
-        const p = document.querySelector('.properties-panel') as HTMLElement;
-        if (p) p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+        toggleToolbar('right');
       }
     }
   });
@@ -199,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       propPanel.style.display = 'none';
     }
+    updateOrientationIcons();
   });
 
   // Final Config Sync

@@ -45,7 +45,8 @@ header {
     letter-spacing: -0.02em;
 }
 
-.header-icon-btn {
+.header-icon-btn,
+.menu-icon-btn {
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -60,12 +61,14 @@ header {
     opacity: 0.7;
 }
 
-.header-icon-btn:hover {
+.header-icon-btn:hover,
+.menu-icon-btn:hover {
     background: rgba(128, 128, 128, 0.1);
     opacity: 1;
 }
 
-.header-icon-btn svg {
+.header-icon-btn svg,
+.menu-icon-btn svg {
     width: 20px;
     height: 20px;
 }
@@ -170,15 +173,17 @@ header {
 .v-separator {
     width: 1px;
     height: 20px;
-    background: var(--apple-border);
+    background: var(--apple-text-secondary);
     margin: 0 8px;
+    opacity: 0.2;
 }
 
 .h-separator {
     width: 32px;
     height: 1px;
-    background: var(--apple-border);
+    background: var(--apple-text-secondary);
     margin: 4px 0;
+    opacity: 0.2;
 }
 
 .menu-spacer {
