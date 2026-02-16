@@ -13,6 +13,7 @@ export const iconMap: Record<string, string> = {
     'tool-circle': ICONS.circle,
     'tool-hand': ICONS.hand,
     'google-login-btn': ICONS.google,
+    'save-google-icon': ICONS.google,
     'export-main-btn': ICONS.download,
     'menu-google-icon': ICONS.google,
     'icon-chevron-stroke': ICONS.chevron,

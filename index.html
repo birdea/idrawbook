@@ -270,19 +270,34 @@
             </button>
           </div>
 
-          <!-- Drive Save -->
-          <div class="action-block">
+          <!-- Drive Save (Logged Out) -->
+          <div id="drive-login-ui" class="action-block">
             <div class="flex-between">
               <h4>Google Drive</h4>
-              <span id="drive-status" class="status-badge hidden">Logged In</span>
+              <span class="status-badge" style="background: var(--apple-text-secondary);">Logged Out</span>
+            </div>
+            <p style="font-size: 11px; color: var(--apple-text-secondary); margin: 4px 0;">Sign in to save directly to
+              your Drive.</p>
+            <button id="google-login-btn" class="btn-secondary full-width">
+              <span id="save-google-icon" class="icon-left"
+                style="width: 14px; height: 14px; margin-right: 6px;"></span>
+              Sign in with Google
+            </button>
+          </div>
+
+          <!-- Drive Save (Logged In) -->
+          <div id="drive-save-ui" class="action-block hidden">
+            <div class="flex-between">
+              <h4>Google Drive</h4>
+              <span id="drive-status" class="status-badge">Logged In</span>
             </div>
             <!-- Folder Selection -->
-            <div id="drive-folder-ui" class="folder-select-mini hidden">
+            <div id="drive-folder-ui" class="folder-select-mini">
               <span class="folder-icon">📂</span>
               <span id="selected-folder-name" class="folder-name">My Drive</span>
               <button id="change-folder-btn" class="btn-link">Change</button>
             </div>
-            <button id="btn-save-drive" class="btn-secondary full-width" disabled>
+            <button id="btn-save-drive" class="btn-secondary full-width">
               Save to Drive
             </button>
           </div>
