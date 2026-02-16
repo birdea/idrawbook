@@ -73,6 +73,31 @@ header {
     height: 16px;
 }
 
+.menu-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--apple-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.7;
+}
+
+.menu-icon-btn:hover {
+    background: rgba(128, 128, 128, 0.1);
+    opacity: 1;
+}
+
+.menu-icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
 /* Menu Bar */
 .menu-bar {
     display: flex;
@@ -140,7 +165,23 @@ header {
     border-radius: 6px;
     cursor: pointer;
     display: flex;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.menu-dropdown button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
 }
 
 .menu-dropdown button:hover {

@@ -8,9 +8,8 @@ export function updateGoogleUI(user: GoogleUser | null) {
     const menuName = document.getElementById('menu-user-name');
 
     // Save Modal Drive Elements
-    const driveStatus = document.getElementById('drive-status');
-    const driveFolderUI = document.getElementById('drive-folder-ui');
-    const btnSaveDrive = document.getElementById('btn-save-drive') as HTMLButtonElement;
+    const driveLoginUI = document.getElementById('drive-login-ui');
+    const driveSaveUI = document.getElementById('drive-save-ui');
 
     if (user) {
         // Menu
@@ -20,9 +19,8 @@ export function updateGoogleUI(user: GoogleUser | null) {
         if (menuName) menuName.textContent = user.name;
 
         // Save Modal
-        driveStatus?.classList.remove('hidden');
-        driveFolderUI?.classList.remove('hidden');
-        btnSaveDrive?.removeAttribute('disabled');
+        driveLoginUI?.classList.add('hidden');
+        driveSaveUI?.classList.remove('hidden');
 
     } else {
         // Menu
@@ -30,8 +28,7 @@ export function updateGoogleUI(user: GoogleUser | null) {
         menuInfo?.classList.add('hidden');
 
         // Save Modal
-        driveStatus?.classList.add('hidden');
-        driveFolderUI?.classList.add('hidden');
-        btnSaveDrive?.setAttribute('disabled', 'true');
+        driveLoginUI?.classList.remove('hidden');
+        driveSaveUI?.classList.add('hidden');
     }
 }

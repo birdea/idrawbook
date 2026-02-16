@@ -44,22 +44,34 @@ export class GoogleService {
     }
 
     public login() {
+        console.log('Login requested...');
         if (typeof google === 'undefined') {
+            console.error('Google GSI script not loaded');
             alert('Google identity services not loaded yet. Please try again in a moment.');
             return;
         }
 
-        const client = google.accounts.oauth2.initTokenClient({
-            client_id: this.clientId,
-            scope: 'https://www.googleapis.com/auth/drive.file email profile',
-            callback: (response: any) => {
-                if (response.access_token) {
-                    this.accessToken = response.access_token;
-                    this.fetchUserInfo();
-                }
-            },
-        });
-        client.requestAccessToken();
+        try {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: this.clientId,
+                scope: 'https://www.googleapis.com/auth/drive.file email profile',
+                callback: (response: any) => {
+                    console.log('Auth response received:', response);
+                    if (response.access_token) {
+                        this.accessToken = response.access_token;
+                        this.fetchUserInfo();
+                    } else if (response.error) {
+                        console.error('Auth error:', response.error);
+                        alert(`Login failed: ${response.error}`);
+                    }
+                },
+            });
+            console.log('Requesting access token...');
+            client.requestAccessToken();
+        } catch (err) {
+            console.error('Error during initTokenClient or requestAccessToken:', err);
+            alert('Failed to initialize Google login. Please check if your Client ID is correct.');
+        }
     }
 
     private async fetchUserInfo() {
