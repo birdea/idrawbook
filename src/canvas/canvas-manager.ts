@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import type { ICanvasContext, Page } from './types';
 import { PageManager } from './page-manager.ts';
 import { CanvasRenderer } from './renderer.ts';
@@ -299,30 +298,33 @@ export class CanvasManager implements ICanvasContext {
         return thumbCanvas.toDataURL('image/jpeg', 0.7);
     }
 
-    public getBlob(format: 'png' | 'jpeg' | 'pdf' = 'png', quality: number = 0.9): Promise<Blob | null> {
-        return new Promise(resolve => {
-            const page = this.pageManager.getActivePage();
-            if (!page) {
-                resolve(null);
-                return;
-            }
+    public async getBlob(format: 'png' | 'jpeg' | 'pdf' = 'png', quality: number = 0.9): Promise<Blob | null> {
+        const page = this.pageManager.getActivePage();
+        if (!page) {
+            return null;
+        }
 
-            if (format === 'pdf') {
-                const orientation = page.width > page.height ? 'l' : 'p';
-                const pdf = new jsPDF({
-                    orientation,
-                    unit: 'px',
-                    format: [page.width, page.height]
-                });
-                const imgData = page.canvas.toDataURL('image/jpeg', quality);
-                pdf.addImage(imgData, 'JPEG', 0, 0, page.width, page.height);
-                resolve(pdf.output('blob'));
-            } else {
+        if (format === 'pdf') {
+            // Lazy-load jsPDF only when PDF export is needed
+            // Reduces initial bundle size by ~300KB
+            const { jsPDF } = await import('jspdf');
+
+            const orientation = page.width > page.height ? 'l' : 'p';
+            const pdf = new jsPDF({
+                orientation,
+                unit: 'px',
+                format: [page.width, page.height]
+            });
+            const imgData = page.canvas.toDataURL('image/jpeg', quality);
+            pdf.addImage(imgData, 'JPEG', 0, 0, page.width, page.height);
+            return pdf.output('blob');
+        } else {
+            return new Promise(resolve => {
                 const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
                 page.canvas.toBlob(blob => {
                     resolve(blob);
                 }, mimeType, quality);
-            }
-        });
+            });
+        }
     }
 }

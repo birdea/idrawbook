@@ -61,7 +61,7 @@ export class ToolUtils {
         if (tool === 'eraser') {
             ctx.strokeStyle = '#ffffff';
             ctx.fillStyle = '#ffffff';
-            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalCompositeOperation = 'destination-out';
             ctx.globalAlpha = 1.0;
         } else {
             ctx.strokeStyle = config.color;
@@ -94,6 +94,10 @@ export class ToolUtils {
         const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
         const steps = Math.ceil(dist / 1);
 
+        // Batch all arcs into a single path for better performance
+        // Instead of 200+ separate beginPath/fill calls, we do just 1
+        ctx.beginPath();
+
         for (let s = 0; s <= steps; s++) {
             const t = s / steps;
             const x = p1.x + (p2.x - p1.x) * t;
@@ -103,14 +107,12 @@ export class ToolUtils {
             const alpha = (config.opacity / 100) * (pressure * pressure);
 
             ctx.globalAlpha = Math.min(1, alpha);
-            // fillStyle is inherited from setupContext
 
             const jitter = (Math.random() - 0.5) * baseSize * 0.5;
-
-            ctx.beginPath();
             ctx.arc(x + jitter, y + jitter, baseSize, 0, Math.PI * 2);
-            ctx.fill();
         }
+
+        ctx.fill();
     }
 
     private static drawBrushSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, config: ToolConfig) {
@@ -156,8 +158,17 @@ export class ToolUtils {
     }
 
     static floodFill(ctx: CanvasRenderingContext2D, start: Point, fillColor: string) {
+        // TODO: Performance - Move to Web Worker to avoid blocking main thread
+        // Current implementation processes pixels synchronously and can freeze UI
+        // on large canvas (1024x1024 = ~4MB ImageData processing)
         const width = ctx.canvas.width;
         const height = ctx.canvas.height;
+
+        // Warn if canvas is large enough to cause performance issues
+        if (width * height > 2000000) {
+            console.warn('Flood fill may cause performance issues on large canvas. Consider using Web Worker.');
+        }
+
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
 
