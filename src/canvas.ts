@@ -38,6 +38,11 @@ export class CanvasManager {
     private activePageId: string | null = null;
     private pageGap: number = 40;
 
+    // Multi-touch tracking
+    private activePointers: Map<number, Point> = new Map();
+    private lastPinchDistance: number | null = null;
+    private lastPinchCenter: Point | null = null;
+
     // History
     private historyManager: HistoryManager;
     private currentStrokePoints: Point[] = [];
@@ -401,8 +406,32 @@ export class CanvasManager {
         const y = e.clientY - rect.top;
         this.lastMousePos = { x, y };
 
-        // Right button or Middle button for panning
-        if (e.button === 1 || e.button === 2) {
+        // Track this pointer
+        this.activePointers.set(e.pointerId, { x, y });
+
+        // If multi-touch, stop any single-pointer action (drawing, panning)
+        if (this.activePointers.size >= 2) {
+            if (this.isDrawing) {
+                this.isDrawing = false;
+                this.currentStrokePoints = [];
+                this.render();
+            }
+            this.isPanning = false;
+            this.isMovingPage = false;
+
+            const pointers = Array.from(this.activePointers.values());
+            const p1 = pointers[0];
+            const p2 = pointers[1];
+            this.lastPinchDistance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            this.lastPinchCenter = {
+                x: (p1.x + p2.x) / 2,
+                y: (p1.y + p2.y) / 2
+            };
+            return;
+        }
+
+        // Right button or Middle button for panning (mouse only)
+        if (e.pointerType === 'mouse' && (e.button === 1 || e.button === 2)) {
             this.isPanning = true;
             this.canvas.style.cursor = 'grabbing';
             return;
@@ -525,21 +554,63 @@ export class CanvasManager {
         } else {
             // Shape preview on offscreen (which overlays viewport)
             this.offscreenCtx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
-            // We'll draw the shape on the screen canvas directly or use offscreen 
-            // properly transformed? 
-            // Actually `handlePointerMove` draws preview on `ctx` (screen). 
-            // We don't need to do much here.
         }
     }
 
     private handlePointerMove(e: PointerEvent) {
-        // Prevent default if we are active
-        if (this.isPanning || this.isMovingPage || this.isDrawing) {
-            e.preventDefault();
-        }
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
+        // Update active pointer position
+        if (this.activePointers.has(e.pointerId)) {
+            this.activePointers.set(e.pointerId, { x, y });
+        }
+
+        // Multi-touch Gestures (Pinch to Zoom & Pan)
+        if (this.activePointers.size >= 2) {
+            e.preventDefault();
+            const pointers = Array.from(this.activePointers.values());
+            const p1 = pointers[0];
+            const p2 = pointers[1];
+
+            const currentDistance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            const currentCenter = {
+                x: (p1.x + p2.x) / 2,
+                y: (p1.y + p2.y) / 2
+            };
+
+            if (this.lastPinchDistance !== null && this.lastPinchCenter !== null) {
+                // Calculate scale change
+                const zoomFactor = currentDistance / this.lastPinchDistance;
+                const newScale = Math.max(0.1, Math.min(10, this.scale * zoomFactor));
+
+                // Center displacement
+                const dx = currentCenter.x - this.lastPinchCenter.x;
+                const dy = currentCenter.y - this.lastPinchCenter.y;
+
+                // Apply zoom centered on the pinch midpoint
+                this.offset.x = currentCenter.x - (currentCenter.x - this.offset.x) * (newScale / this.scale);
+                this.offset.y = currentCenter.y - (currentCenter.y - this.offset.y) * (newScale / this.scale);
+                this.scale = newScale;
+
+                // Apply translation (pan)
+                this.offset.x += dx;
+                this.offset.y += dy;
+
+                this.render();
+                this.updateZoomIndicator();
+            }
+
+            this.lastPinchDistance = currentDistance;
+            this.lastPinchCenter = currentCenter;
+            return;
+        }
+
+        // Standard Single Pointer Actions
+        if (this.isPanning || this.isMovingPage || this.isDrawing) {
+            e.preventDefault();
+        }
 
         if (this.isPanning) {
             // Commit text before panning
@@ -602,17 +673,9 @@ export class CanvasManager {
             this.render(); // Clear and redraw world
             this.setupContext(this.ctx);
 
-            // For shape preview, we need SCREEN coordinates of start and current.
-            // startPoint is LOCAL. We need to convert back to screen?
-            // Or just use world coords?
-            // `ToolUtils.drawLine` expects points. 
-            // If we draw on `this.ctx` (screen layer), points must be transformed to SCREEN.
-
-            // Simplest: use `worldToScreen`.
             const startScreen = this.worldToScreen(page.x + this.startPoint.x, page.y + this.startPoint.y);
-            const currentScreen = { x, y }; // pointer is already screen relative to canvas
+            const currentScreen = { x, y };
 
-            // Check tool
             switch (this.currentTool) {
                 case 'line':
                     ToolUtils.drawLine(this.ctx, startScreen, currentScreen);
@@ -630,6 +693,16 @@ export class CanvasManager {
 
     private handlePointerUp(e: PointerEvent) {
         e.preventDefault();
+        this.activePointers.delete(e.pointerId);
+
+        if (this.activePointers.size < 2) {
+            this.lastPinchDistance = null;
+            this.lastPinchCenter = null;
+        }
+
+        // If we just finished a multi-touch gesture, don't finalize any drawing
+        if (this.activePointers.size > 0) return;
+
         if (this.isPanning) {
             this.isPanning = false;
             this.updateCursor();
@@ -654,7 +727,8 @@ export class CanvasManager {
                 }
             } else {
                 // Finalize shape
-                const currentWorldPos = this.screenToWorld(e.clientX - this.canvas.getBoundingClientRect().left, e.clientY - this.canvas.getBoundingClientRect().top);
+                const rect = this.canvas.getBoundingClientRect();
+                const currentWorldPos = this.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
                 const localPos: Point = {
                     x: currentWorldPos.x - page.x,
                     y: currentWorldPos.y - page.y
