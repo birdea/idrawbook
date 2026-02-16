@@ -1575,6 +1575,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   justify-content: center;
   transition: background 0.15s ease;
   flex-shrink: 0;
+  touch-action: none;
 }
 
 .text-overlay-drag-handle:hover {
