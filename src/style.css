@@ -237,6 +237,12 @@ header {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.menu-dropdown button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .menu-separator {
   height: 1px;
   background: var(--apple-border);
@@ -680,10 +686,59 @@ input[type="range"]::-webkit-slider-thumb:hover {
   filter: brightness(0.9);
 }
 
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--apple-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.icon-btn:hover {
+  background: rgba(128, 128, 128, 0.1);
+  opacity: 1;
+}
+
+.icon-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* History Controls (Top Right) */
+.history-controls {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: var(--apple-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 0.5px solid var(--apple-border);
+  box-shadow: var(--panel-shadow);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 100;
+}
+
 /* Minimal Tooltip */
 .zoom-controls {
   position: absolute;
-  top: 24px;
+  bottom: 24px;
   right: 24px;
   background: var(--apple-surface);
   backdrop-filter: var(--glass-blur);
@@ -1262,8 +1317,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 
   .zoom-controls {
-    top: 12px;
-    right: 12px;
+    bottom: 24px;
+    right: 24px;
   }
 }
 
