@@ -317,6 +317,8 @@ export class TextTool {
         dragHandle.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            // Start capturing pointer events for reliable drag on mobile
+            (e.target as HTMLElement).setPointerCapture(e.pointerId);
             this.startDrag(e);
         });
 
@@ -367,7 +369,8 @@ export class TextTool {
     private startDrag(e: PointerEvent): void {
         if (!this.overlayElement) return;
         this.isDragging = true;
-        this.dragStartMouse = { x: e.clientX, y: e.clientY };
+        // Use screenX/Y for consistent movement tracking across different pointer types/platforms
+        this.dragStartMouse = { x: e.screenX, y: e.screenY };
         this.dragStartOverlayPos = {
             left: parseFloat(this.overlayElement.style.left) || 0,
             top: parseFloat(this.overlayElement.style.top) || 0,
@@ -375,8 +378,8 @@ export class TextTool {
 
         const onMove = (ev: PointerEvent) => {
             if (!this.isDragging || !this.overlayElement) return;
-            const dx = ev.clientX - this.dragStartMouse.x;
-            const dy = ev.clientY - this.dragStartMouse.y;
+            const dx = ev.screenX - this.dragStartMouse.x;
+            const dy = ev.screenY - this.dragStartMouse.y;
             this.overlayElement.style.left = `${this.dragStartOverlayPos.left + dx}px`;
             this.overlayElement.style.top = `${this.dragStartOverlayPos.top + dy}px`;
         };
