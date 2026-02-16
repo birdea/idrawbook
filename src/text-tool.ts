@@ -39,9 +39,16 @@ export class TextTool {
     // Re-edit: the action index being edited (to replace in history)
     private editingActionIndex: number = -1;
 
+    // Offsets for the textarea content relative to the overlay container
+    // Top: 14px (drag handle) + 2px (border) + 6px (padding) = 22px
+    // Left: 2px (border) + 10px (padding) = 12px
+    private readonly OFFSET_X = 12;
+    private readonly OFFSET_Y = 22;
+
     private getViewport: () => ViewportInfo;
     private getCanvasRect: () => DOMRect;
     private onCommit: (action: TextAction, replaceIndex: number) => void;
+    private onEditStatusChange: (() => void) | undefined;
     private toolConfig: ToolConfig;
 
     private boundHandleClickOutside: (e: MouseEvent) => void;
@@ -52,16 +59,22 @@ export class TextTool {
         getViewport: () => ViewportInfo,
         getCanvasRect: () => DOMRect,
         onCommit: (action: TextAction, replaceIndex: number) => void,
-        toolConfig: ToolConfig
+        toolConfig: ToolConfig,
+        onEditStatusChange?: () => void
     ) {
         this.container = document.getElementById(containerId) as HTMLElement;
         this.getViewport = getViewport;
         this.getCanvasRect = getCanvasRect;
         this.onCommit = onCommit;
         this.toolConfig = toolConfig;
+        this.onEditStatusChange = onEditStatusChange;
 
         this.boundHandleClickOutside = this.handleClickOutside.bind(this);
         this.boundHandleKeydown = this.handleKeydown.bind(this);
+    }
+
+    public getEditingActionIndex(): number {
+        return this.editingActionIndex;
     }
 
     public updateToolConfig(config: ToolConfig) {
@@ -85,6 +98,7 @@ export class TextTool {
         this.createOverlay();
         this.positionOverlay();
         this.activateOverlay();
+        this.onEditStatusChange?.();
     }
 
     /** Re-edit an existing TextAction (clicked on committed text) */
@@ -111,14 +125,19 @@ export class TextTool {
         // Fill in the existing text
         if (this.textareaElement) {
             this.textareaElement.value = action.text;
+            this.autoResizeTextarea();
         }
 
         this.activateOverlay();
+        this.onEditStatusChange?.();
     }
 
     private activateOverlay(): void {
         requestAnimationFrame(() => {
-            this.textareaElement?.focus();
+            if (this.textareaElement) {
+                this.textareaElement.focus();
+                this.autoResizeTextarea();
+            }
         });
 
         setTimeout(() => {
@@ -174,6 +193,21 @@ export class TextTool {
         this.cleanup();
     }
 
+    /**
+     * Calculate the vertical offset caused by the line-height leading.
+     * Canvas textBaseline='top' aligns to the top of the em-square.
+     * TextArea text aligns based on line-height, which adds leading above the em-square.
+     * The offset is approximately (lineHeight - 1) * fontSize / 2.
+     */
+    private getTextHeadOffset(): number {
+        const viewport = this.getViewport();
+        const scaledFontSize = this.textConfig.fontSize * viewport.scale;
+        // If lineHeight is 1.4, the leading is 0.4em total, or 0.2em on top.
+        // So we need to shift the overlay UP by this amount so the text body matches exactly.
+        const leading = (this.textConfig.lineHeight - 1) * scaledFontSize / 2;
+        return Math.max(0, leading);
+    }
+
     /** Convert current overlay screen position back to page-local coordinates */
     private syncPlacementFromOverlay(): void {
         if (!this.overlayElement || !this.currentPlacement || !this.currentPageInfo) return;
@@ -185,9 +219,12 @@ export class TextTool {
         const overlayLeft = parseFloat(this.overlayElement.style.left);
         const overlayTop = parseFloat(this.overlayElement.style.top);
 
+        const headOffset = this.getTextHeadOffset();
+
         // Reverse of positionOverlay: screen -> world -> local
-        const screenX = overlayLeft - (canvasRect.left - containerRect.left);
-        const screenY = overlayTop - (canvasRect.top - containerRect.top);
+        // Adjusted for offset: Screen Coord of Text = Overlay Coord + Offset + HeadOffset
+        const screenX = overlayLeft - (canvasRect.left - containerRect.left) + this.OFFSET_X;
+        const screenY = overlayTop - (canvasRect.top - containerRect.top) + this.OFFSET_Y + headOffset;
 
         const worldX = (screenX - viewport.offsetX) / viewport.scale;
         const worldY = (screenY - viewport.offsetY) / viewport.scale;
@@ -214,6 +251,8 @@ export class TextTool {
         }
         this.textareaElement = null;
         this.optionsPopup = null;
+
+        this.onEditStatusChange?.();
     }
 
     private createOverlay(): void {
@@ -249,6 +288,10 @@ export class TextTool {
         textarea.setAttribute('autocorrect', 'off');
         textarea.setAttribute('autocapitalize', 'off');
 
+        textarea.addEventListener('input', () => {
+            this.autoResizeTextarea();
+        });
+
         textarea.addEventListener('compositionstart', () => {
             this.isComposing = true;
         });
@@ -281,6 +324,26 @@ export class TextTool {
         this.container.appendChild(overlay);
 
         this.applyTextConfigToTextarea();
+    }
+
+    private autoResizeTextarea(): void {
+        if (!this.textareaElement) return;
+
+        // Reset height to auto to correctly calculate new scrollHeight
+        this.textareaElement.style.height = 'auto';
+
+        // Set new height based on scrollHeight
+        // Note: scrollHeight includes padding but not border
+        // Our CSS has border: 2px, so we might need to adjust if box-sizing is border-box
+        // CSS says box-sizing: border-box.
+        // If box-sizing is border-box, style.height should include padding + border.
+        // scrollHeight includes padding. 
+        // So we need scrollHeight + border*2
+        const border = 4; // 2px top + 2px bottom
+        const newHeight = this.textareaElement.scrollHeight + border;
+
+        // Enforce min/max constraints if needed (CSS has min-height: 48px)
+        this.textareaElement.style.height = `${newHeight}px`;
     }
 
     // --- Drag logic ---
@@ -328,8 +391,13 @@ export class TextTool {
         const screenX = worldX * viewport.scale + viewport.offsetX;
         const screenY = worldY * viewport.scale + viewport.offsetY;
 
-        const left = canvasRect.left - containerRect.left + screenX;
-        const top = canvasRect.top - containerRect.top + screenY;
+        const headOffset = this.getTextHeadOffset();
+
+        // Apply offset subtraction: placing top-left of container such that text content aligns with screenX/Y
+        // We subtract the headOffset as well, to move the container UP, 
+        // effectively moving the text content DOWN just enough to align the baseline leading.
+        const left = canvasRect.left - containerRect.left + screenX - this.OFFSET_X;
+        const top = canvasRect.top - containerRect.top + screenY - this.OFFSET_Y - headOffset;
 
         this.overlayElement.style.left = `${left}px`;
         this.overlayElement.style.top = `${top}px`;
@@ -346,6 +414,8 @@ export class TextTool {
         this.textareaElement.style.lineHeight = `${this.textConfig.lineHeight}`;
         this.textareaElement.style.textAlign = this.textConfig.hAlign;
         this.textareaElement.style.fontFamily = this.textConfig.fontFamily;
+
+        this.autoResizeTextarea();
     }
 
     // --- Options popup ---
@@ -481,6 +551,7 @@ export class TextTool {
             if (this.textareaElement) {
                 this.textareaElement.value = '';
                 this.textareaElement.focus();
+                this.autoResizeTextarea();
             }
         });
         clearRow.appendChild(clearBtn);

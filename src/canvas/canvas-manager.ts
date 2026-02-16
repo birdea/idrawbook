@@ -60,7 +60,8 @@ export class CanvasManager implements ICanvasContext {
             }),
             () => this.canvas.getBoundingClientRect(),
             (action: TextAction, replaceIndex: number) => this.handleTextToolAction(action, replaceIndex),
-            this.config
+            this.config,
+            () => this.redraw(this.historyManager.getActions())
         );
 
         this.inputManager = new InputManager(this);
@@ -157,12 +158,16 @@ export class CanvasManager implements ICanvasContext {
             page.ctx.fillRect(0, 0, page.width, page.height);
         });
 
-        for (const action of actions) {
+        const editingIndex = this.textTool?.getEditingActionIndex() ?? -1;
+
+        actions.forEach((action, index) => {
+            if (index === editingIndex) return;
+
             if (action.pageId) {
                 const p = this.pageManager.get(action.pageId);
                 if (p) action.draw(p.ctx);
             }
-        }
+        });
         this.render();
         this.onUpdateCallback?.();
     }

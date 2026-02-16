@@ -23,7 +23,8 @@ vi.mock('../text-tool', () => {
                 updateToolConfig: vi.fn(),
                 destroy: vi.fn(),
                 startEditing: vi.fn(),
-                startReEditing: vi.fn()
+                startReEditing: vi.fn(),
+                getEditingActionIndex: vi.fn().mockReturnValue(-1)
             };
         })
     };
