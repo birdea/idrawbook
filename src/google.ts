@@ -8,8 +8,8 @@ export interface GoogleUser {
 }
 
 export class GoogleService {
-    private clientId = '781830483821-90nhu7i4i5ecrjgeajedq765c468bo5j.apps.googleusercontent.com';
-    private apiKey = 'AIzaSyD8--sV4xo5D52nKBAaVxsCSZOi9I4kUTo'; // User needs to replace this
+    private clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    private apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
     private accessToken: string | null = null;
     private user: GoogleUser | null = null;
     private onStateChange: (user: GoogleUser | null) => void;
