@@ -15,6 +15,7 @@ export class InputManager {
     private currentStrokePoints: Point[] = [];
     private lastMousePos: Point = { x: 0, y: 0 };
     private context: ICanvasContext;
+    private rafId: number | null = null;
 
     constructor(context: ICanvasContext) {
         this.context = context;
@@ -289,7 +290,15 @@ export class InputManager {
             page.ctx.globalCompositeOperation = 'source-over';
 
             this.currentStrokePoints.push(localPos);
-            this.context.render();
+
+            // Use requestAnimationFrame to throttle rendering
+            // Prevents multiple redraws per frame, improving performance
+            if (!this.rafId) {
+                this.rafId = requestAnimationFrame(() => {
+                    this.context.render();
+                    this.rafId = null;
+                });
+            }
         } else {
             this.context.render();
             ToolUtils.setupContext(this.context.ctx, this.context.currentTool, this.context.config);
@@ -322,6 +331,12 @@ export class InputManager {
         }
 
         if (this.activePointers.size > 0) return;
+
+        // Cancel any pending render animation frame
+        if (this.rafId) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        }
 
         if (this.isPanning) {
             this.isPanning = false;
