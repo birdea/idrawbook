@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { TextTool, TextAction, type TextPlacement, type TextConfig } from '../text-tool';
+import { TextTool } from '../text-tool';
+import { TextAction, type TextPlacement, type TextConfig } from '../text-action';
 import type { ToolConfig } from '../tools';
 
 describe('TextTool', () => {
@@ -314,7 +315,7 @@ describe('TextAction', () => {
 
     it('hitTest should detect hits', () => {
         const action = new TextAction('Hit me', placement, textConfig, toolConfig);
-        // placement is 50,50. 
+        // placement is 50,50.
         // mocked width 50.
         // height = 1 line * 20 * 1.5 = 30.
         // box around 50,50 to 100,80 (plus padding 4) -> 46,46 to 104,84

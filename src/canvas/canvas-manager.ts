@@ -3,7 +3,8 @@ import { PageManager } from './page-manager';
 import { CanvasRenderer } from './renderer';
 import { InputManager } from './input-manager';
 import { HistoryManager, type DrawingAction } from '../history';
-import { TextTool, type TextAction } from '../text-tool';
+import { TextTool } from '../text-tool';
+import type { TextAction } from '../text-action';
 import type { ToolConfig, DrawingTool, Point } from '../tools';
 import { showToast } from '../ui/toast';
 

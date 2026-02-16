@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CanvasManager } from '../canvas/canvas-manager';
-import { TextAction } from '../text-tool';
+import { TextAction } from '../text-action';
+
+// Mock TextAction (used by both text-tool and input-manager via text-action)
+vi.mock('../text-action', () => {
+    return {
+        TextAction: vi.fn().mockImplementation(function (this: any) {
+            this.hitTest = vi.fn().mockReturnValue(true);
+            this.pageId = 'page1';
+            this.draw = vi.fn();
+        })
+    };
+});
 
 // Mock TextTool
 vi.mock('../text-tool', () => {
@@ -14,11 +25,6 @@ vi.mock('../text-tool', () => {
                 startEditing: vi.fn(),
                 startReEditing: vi.fn()
             };
-        }),
-        TextAction: vi.fn().mockImplementation(function (this: any) {
-            this.hitTest = vi.fn().mockReturnValue(true);
-            this.pageId = 'page1';
-            this.draw = vi.fn();
         })
     };
 });
@@ -361,7 +367,7 @@ describe('CanvasManager', () => {
     });
 
     it('should export PDF via getBlob', async () => {
-        // Mock toDataURL is already spyOn'd 
+        // Mock toDataURL is already spyOn'd
         vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,');
 
         const blob = await manager.getBlob('pdf');
@@ -373,7 +379,7 @@ describe('CanvasManager', () => {
 
     it('should move page with hand tool', () => {
         manager.setTool('hand');
-        // Initial page is at 0,0. 
+        // Initial page is at 0,0.
         // Mock getBoundingClientRect returns 0,0 for canvas.
         // Viewport offset 0,0 scale 1 (default).
         // Click at 10,10 should hit the page (which starts at 0,0).

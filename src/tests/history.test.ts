@@ -115,8 +115,6 @@ describe('HistoryManager', () => {
     });
 });
 
-
-
 describe('Action Classes', () => {
     const mockCtx = {} as CanvasRenderingContext2D;
     const mockConfig: ToolConfig = {
