@@ -191,6 +191,24 @@ describe('ToolUtils', () => {
         expect(ctx.putImageData).not.toHaveBeenCalled();
     });
 
+    it('drawStroke (pencil) should be deterministic', () => {
+        const points = [p1, { x: 50, y: 50, pressure: 0.5 }];
+        const pencilConfig = { ...mockConfig, size: 5, opacity: 50 };
+
+        // First run
+        const calls1: any[] = [];
+        (ctx.arc as any).mockImplementation((...args: any[]) => calls1.push(args));
+        ToolUtils.drawStroke(ctx, points, 'pencil', pencilConfig);
+
+        // Second run
+        const calls2: any[] = [];
+        (ctx.arc as any).mockImplementation((...args: any[]) => calls2.push(args));
+        ToolUtils.drawStroke(ctx, points, 'pencil', pencilConfig);
+
+        expect(calls1.length).toBeGreaterThan(0);
+        expect(calls1).toEqual(calls2);
+    });
+
     it('floodFill invalid hex returns', () => {
         const width = 10;
         const height = 10;
