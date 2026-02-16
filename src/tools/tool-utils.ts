@@ -94,11 +94,18 @@ export class ToolUtils {
 
             ctx.globalAlpha = Math.min(1, alpha);
 
-            const jitter = (Math.random() - 0.5) * baseSize * 0.5;
+            // Deterministic jitter based on coordinates
+            const noise = ToolUtils.noise(x, y);
+            const jitter = (noise - 0.5) * baseSize * 0.5;
             ctx.arc(x + jitter, y + jitter, baseSize, 0, Math.PI * 2);
         }
 
         ctx.fill();
+    }
+
+    private static noise(x: number, y: number): number {
+        const val = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        return val - Math.floor(val);
     }
 
     private static drawBrushSegment(ctx: CanvasRenderingContext2D, p1: Point, p2: Point, config: ToolConfig) {
