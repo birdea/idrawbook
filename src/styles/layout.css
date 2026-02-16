@@ -47,9 +47,9 @@ header {
 
 .header-icon-btn,
 .menu-icon-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     border: none;
     background: transparent;
     color: var(--apple-text);
@@ -69,8 +69,8 @@ header {
 
 .header-icon-btn svg,
 .menu-icon-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 }
 
 /* Menu Bar */
