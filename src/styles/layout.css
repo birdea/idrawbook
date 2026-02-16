@@ -173,17 +173,17 @@ header {
 .v-separator {
     width: 1px;
     height: 20px;
-    background: var(--apple-text-secondary);
+    background: var(--apple-border);
     margin: 0 8px;
-    opacity: 0.2;
+    flex-shrink: 0;
 }
 
 .h-separator {
     width: 32px;
     height: 1px;
-    background: var(--apple-text-secondary);
-    margin: 4px 0;
-    opacity: 0.2;
+    background: var(--apple-border);
+    margin: 0;
+    flex-shrink: 0;
 }
 
 .menu-spacer {
