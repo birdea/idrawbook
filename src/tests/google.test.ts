@@ -107,11 +107,8 @@ describe('GoogleService', () => {
             json: async () => ({ error: { message: 'fail' } })
         });
 
-        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
-
         const result = await service.uploadToDrive(blob, 'test.png', 'image/png');
         expect(result).toBe(false);
-        expect(alertSpy).toHaveBeenCalled();
     });
 
     it('logout should clear token', () => {

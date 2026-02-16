@@ -27,7 +27,7 @@ export class ModalManager {
             const height = parseInt(hInput.value);
 
             if (!width || !height || width <= 0 || height <= 0) {
-                alert('Please enter valid dimensions.');
+                showToast('Please enter valid dimensions.');
                 return;
             }
 
@@ -81,7 +81,7 @@ export class ModalManager {
             const originalText = btnSaveLocal.innerHTML;
             btnSaveLocal.textContent = 'Generating...';
 
-            const blob = await this.canvasManager.getBlob(format as any, quality);
+            const blob = await this.canvasManager.getBlob(format as 'png' | 'jpeg' | 'pdf', quality);
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -103,7 +103,7 @@ export class ModalManager {
             const originalText = btnSaveDrive.innerHTML;
             btnSaveDrive.textContent = 'Uploading...';
 
-            const blob = await this.canvasManager.getBlob(format as any, quality);
+            const blob = await this.canvasManager.getBlob(format as 'png' | 'jpeg' | 'pdf', quality);
             if (blob) {
                 let mimeType = 'image/png';
                 if (format === 'jpeg') mimeType = 'image/jpeg';

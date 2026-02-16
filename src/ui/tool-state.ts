@@ -34,17 +34,13 @@ export class ToolStateManager {
     }
 
     public switchTool(tool: DrawingTool) {
-        if (tool === 'hand') {
-            const activeBtn = document.querySelector('.tool-btn.active');
-            const currentActive = activeBtn?.getAttribute('data-tool') as DrawingTool;
-            if (currentActive && currentActive !== 'hand') {
-                this.lastTool = currentActive;
-            }
+        if (tool === 'hand' && this.currentActiveTool !== 'hand') {
+            this.lastTool = this.currentActiveTool;
         }
 
         this.currentActiveTool = tool;
 
-        const state = this.toolStates[tool as string];
+        const state = this.toolStates[tool];
         if (state) {
             this.canvasManager.setConfig(state);
             this.updateUIInputs(state);
@@ -65,7 +61,7 @@ export class ToolStateManager {
     }
 
     public updateCurrentState(update: Partial<ToolState>) {
-        const state = this.toolStates[this.currentActiveTool as string];
+        const state = this.toolStates[this.currentActiveTool];
         if (state) {
             Object.assign(state, update);
             this.canvasManager.setConfig(state);
@@ -101,7 +97,7 @@ export class ToolStateManager {
         const indicator = document.getElementById('global-tool-indicator');
         if (!indicator) return;
 
-        const state = this.toolStates[this.currentActiveTool as string];
+        const state = this.toolStates[this.currentActiveTool];
         if (state) {
             const colorEl = indicator.querySelector('.tool-indicator-color') as HTMLElement;
             const sizeEl = indicator.querySelector('.tool-indicator-size') as HTMLElement;

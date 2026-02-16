@@ -20,6 +20,10 @@ export class PageManager {
         return Array.from(this.pages.values());
     }
 
+    public getPagesMap(): Map<string, Page> {
+        return this.pages;
+    }
+
     public getActivePageId(): string | null {
         return this.activePageId;
     }
@@ -31,16 +35,16 @@ export class PageManager {
     public setActivePage(id: string) {
         if (this.pages.has(id)) {
             this.activePageId = id;
-            // this.requestRender(); // No, let caller handle render
         }
     }
 
     public addPage(width: number, height: number): string {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = crypto.randomUUID();
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) throw new Error('Failed to get 2d context for new page');;
 
         // Fill white
         ctx.fillStyle = 'white';
@@ -77,7 +81,7 @@ export class PageManager {
 
         if (this.pages.size > 0) {
             if (this.activePageId === id || !this.activePageId) {
-                this.activePageId = this.pages.keys().next().value!;
+                this.activePageId = this.pages.keys().next().value ?? null;
             }
         } else {
             this.activePageId = null;

@@ -1,5 +1,6 @@
 import './style.css';
 import { CanvasManager } from './canvas/canvas-manager';
+import type { DrawingTool } from './tools';
 import { GoogleService, type GoogleUser } from './google';
 import { APP_CONFIG } from './config';
 import { injectIcons, updateOrientationIcons } from './ui/icons';
@@ -53,8 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', updateOrientationIcons);
 
   // Custom Color Changed Event (from Palette)
-  window.addEventListener('colorChanged', (e: any) => {
-    toolStateManager.updateCurrentState({ color: e.detail.color });
+  window.addEventListener('colorChanged', (e: Event) => {
+    const detail = (e as CustomEvent<{ color: string }>).detail;
+    toolStateManager.updateCurrentState({ color: detail.color });
   });
 
   // Zoom Buttons
@@ -114,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Tool Switching
   document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const tool = btn.getAttribute('data-tool') as any;
+      const tool = btn.getAttribute('data-tool') as DrawingTool;
       if (tool === 'hand') {
         toolStateManager.toggleHandTool();
       } else {
