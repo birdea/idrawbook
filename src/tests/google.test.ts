@@ -84,14 +84,15 @@ describe('GoogleService', () => {
         // No, we can't easily.
         // Let's mock FileReader or ensure it works. jsdom supports it.
 
-        const result = await service.uploadToDrive(blob, 'test.png');
+        const result = await service.uploadToDrive(blob, 'test.png', 'image/png');
         expect(result).toBe(true);
         expect(window.fetch).toHaveBeenCalledWith(
             expect.stringContaining('upload/drive/v3/files'),
             expect.objectContaining({
                 method: 'POST',
                 headers: expect.objectContaining({
-                    Authorization: 'Bearer mock_token'
+                    Authorization: 'Bearer mock_token',
+                    'Content-Type': expect.stringContaining('multipart/related')
                 })
             })
         );
@@ -108,7 +109,7 @@ describe('GoogleService', () => {
 
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
 
-        const result = await service.uploadToDrive(blob, 'test.png');
+        const result = await service.uploadToDrive(blob, 'test.png', 'image/png');
         expect(result).toBe(false);
         expect(alertSpy).toHaveBeenCalled();
     });

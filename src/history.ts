@@ -6,6 +6,7 @@ export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill' | 'text'
 export interface DrawingAction {
     type: ActionType;
     config: ToolConfig;
+    pageId: string;
     draw(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -14,11 +15,13 @@ export class StrokeAction implements DrawingAction {
     points: Point[];
     config: ToolConfig;
     tool: DrawingTool;
+    pageId: string;
 
-    constructor(points: Point[], config: ToolConfig, tool: DrawingTool) {
+    constructor(points: Point[], config: ToolConfig, tool: DrawingTool, pageId: string) {
         this.points = points; // Copy of points
         this.config = { ...config };
         this.tool = tool;
+        this.pageId = pageId;
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -31,12 +34,14 @@ export class ShapeAction implements DrawingAction {
     start: Point;
     end: Point;
     config: ToolConfig;
+    pageId: string;
 
-    constructor(type: ActionType, start: Point, end: Point, config: ToolConfig) {
+    constructor(type: ActionType, start: Point, end: Point, config: ToolConfig, pageId: string) {
         this.type = type;
         this.start = { ...start };
         this.end = { ...end };
         this.config = { ...config };
+        this.pageId = pageId;
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -64,10 +69,12 @@ export class FillAction implements DrawingAction {
     type: ActionType = 'fill';
     point: Point;
     config: ToolConfig;
+    pageId: string;
 
-    constructor(point: Point, config: ToolConfig) {
+    constructor(point: Point, config: ToolConfig, pageId: string) {
         this.point = { ...point };
         this.config = { ...config };
+        this.pageId = pageId;
     }
 
     draw(ctx: CanvasRenderingContext2D) {

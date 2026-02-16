@@ -426,8 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const limitInput = document.getElementById('history-limit') as HTMLInputElement;
     const limit = parseInt(limitInput.value);
 
-    const previewLimitInput = document.getElementById('preview-limit') as HTMLInputElement;
-    const pLimit = parseInt(previewLimitInput.value);
+
 
     const colorCountInput = document.getElementById('color-count') as HTMLInputElement;
     const colorColsInput = document.getElementById('color-columns') as HTMLInputElement;
@@ -443,12 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please enter a valid history limit (10-500).');
     }
 
-    if (pLimit && pLimit >= 1 && pLimit <= 100) {
-      // Logic handled by updatePreview on next call if needed or immediate pruning
-    } else {
-      if (valid) alert('Please enter a valid preview limit (1-100).');
-      valid = false;
-    }
+
 
     if (cCount && cCount >= 1 && cCount <= 100) {
       paletteSettings.count = cCount;
@@ -472,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // EDIT
+  document.getElementById('menu-undo')?.addEventListener('click', () => canvasManager.undo());
   document.getElementById('menu-redo')?.addEventListener('click', () => canvasManager.redo());
   document.getElementById('main-undo-btn')?.addEventListener('click', () => canvasManager.undo());
   document.getElementById('main-redo-btn')?.addEventListener('click', () => canvasManager.redo());
@@ -877,7 +872,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const blob = await canvasManager.getBlob((format || 'png') as any, quality);
     if (blob) {
-      const success = await googleService.uploadToDrive(blob, filename, selectedFolderId);
+      let mimeType = 'image/png';
+      if (format === 'jpeg') mimeType = 'image/jpeg';
+      if (format === 'pdf') mimeType = 'application/pdf';
+
+      const success = await googleService.uploadToDrive(blob, filename, mimeType, selectedFolderId);
       if (success) {
         showToast('Saved to Google Drive!');
         closeSaveModal();

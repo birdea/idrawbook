@@ -297,8 +297,8 @@ export class CanvasManager {
         });
 
         for (const action of actions) {
-            if ((action as any).pageId && this.pages.has((action as any).pageId)) {
-                const p = this.pages.get((action as any).pageId)!;
+            if (action.pageId && this.pages.has(action.pageId)) {
+                const p = this.pages.get(action.pageId)!;
                 action.draw(p.ctx);
             }
         }
@@ -534,8 +534,7 @@ export class CanvasManager {
 
         if (this.currentTool === 'fill') {
             ToolUtils.floodFill(targetPage.ctx, this.startPoint, this.config.color);
-            const action = new FillAction(this.startPoint, this.config);
-            (action as any).pageId = targetPage.id; // Inject pageId
+            const action = new FillAction(this.startPoint, this.config, targetPage.id);
             this.historyManager.push(action);
             this.render();
             this.onUpdate?.(targetPage.id);
@@ -720,8 +719,7 @@ export class CanvasManager {
             if (this.isFreehandTool()) {
                 page.ctx.closePath();
                 if (this.currentStrokePoints.length > 0) {
-                    const action = new StrokeAction([...this.currentStrokePoints], this.config, this.currentTool);
-                    (action as any).pageId = this.activePageId;
+                    const action = new StrokeAction([...this.currentStrokePoints], this.config, this.currentTool, this.activePageId);
                     this.historyManager.push(action);
                     this.onUpdate?.(this.activePageId);
                 }
@@ -740,20 +738,19 @@ export class CanvasManager {
                 switch (this.currentTool) {
                     case 'line':
                         ToolUtils.drawLine(page.ctx, this.startPoint, localPos);
-                        action = new ShapeAction('line', this.startPoint, localPos, this.config);
+                        action = new ShapeAction('line', this.startPoint, localPos, this.config, this.activePageId);
                         break;
                     case 'rect':
                         ToolUtils.drawRect(page.ctx, this.startPoint, localPos);
-                        action = new ShapeAction('rect', this.startPoint, localPos, this.config);
+                        action = new ShapeAction('rect', this.startPoint, localPos, this.config, this.activePageId);
                         break;
                     case 'circle':
                         ToolUtils.drawCircle(page.ctx, this.startPoint, localPos);
-                        action = new ShapeAction('circle', this.startPoint, localPos, this.config);
+                        action = new ShapeAction('circle', this.startPoint, localPos, this.config, this.activePageId);
                         break;
                 }
 
                 if (action) {
-                    (action as any).pageId = this.activePageId;
                     this.historyManager.push(action);
                     this.onUpdate?.(this.activePageId);
                 }

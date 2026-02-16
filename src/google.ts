@@ -130,7 +130,7 @@ export class GoogleService {
     }
 
 
-    public async uploadToDrive(blob: Blob, filename: string, folderId?: string): Promise<boolean> {
+    public async uploadToDrive(blob: Blob, filename: string, mimeType: string, folderId?: string): Promise<boolean> {
         if (!this.accessToken) {
             alert('Please login to Google first.');
             return false;
@@ -140,7 +140,7 @@ export class GoogleService {
             const boundary = 'foo_bar_baz';
             const metadata: any = {
                 name: filename,
-                mimeType: 'image/png'
+                mimeType: mimeType
             };
 
             if (folderId) {
@@ -148,7 +148,7 @@ export class GoogleService {
             }
 
             const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
-            const filePartHeader = `--${boundary}\r\nContent-Type: image/png\r\n\r\n`;
+            const filePartHeader = `--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`;
             const footer = `\r\n--${boundary}--`;
 
             const reader = new FileReader();
