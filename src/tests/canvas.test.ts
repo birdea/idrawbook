@@ -204,7 +204,7 @@ describe('CanvasManager', () => {
         // drawing only pushes to history on pointerUP
 
         canvas.dispatchEvent(pointerEvent);
-        expect((manager as any)._inputManager.isDrawing).toBe(true);
+        expect((manager as any).inputManager.isDrawing).toBe(true);
     });
 
     it('should handle pointer up (finish drawing)', () => {
@@ -241,7 +241,7 @@ describe('CanvasManager', () => {
         });
         canvas.dispatchEvent(upEvent);
 
-        expect((manager as any)._inputManager.isDrawing).toBe(false);
+        expect((manager as any).inputManager.isDrawing).toBe(false);
         expect(historyMock).toHaveBeenCalled();
     });
 
@@ -294,7 +294,7 @@ describe('CanvasManager', () => {
         });
         canvas.dispatchEvent(p2);
 
-        expect((manager as any)._inputManager.activePointers.size).toBe(2);
+        expect((manager as any).inputManager.activePointers.size).toBe(2);
 
         // Move to pinch in (reduce distance)
         const p2Move = new PointerEvent('pointermove', {
@@ -311,7 +311,7 @@ describe('CanvasManager', () => {
         // End
         const p1Up = new PointerEvent('pointerup', { pointerId: 1 });
         canvas.dispatchEvent(p1Up);
-        expect((manager as any)._inputManager.activePointers.size).toBe(1);
+        expect((manager as any).inputManager.activePointers.size).toBe(1);
     });
 
     it('should handle export image', () => {
@@ -394,7 +394,7 @@ describe('CanvasManager', () => {
             button: 0
         }));
 
-        expect((manager as any)._inputManager.isMovingPage).toBe(true);
+        expect((manager as any).inputManager.isMovingPage).toBe(true);
 
         // Move
         canvas.dispatchEvent(new PointerEvent('pointermove', {
@@ -406,7 +406,7 @@ describe('CanvasManager', () => {
 
         // Up
         canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 }));
-        expect((manager as any)._inputManager.isMovingPage).toBe(false);
+        expect((manager as any).inputManager.isMovingPage).toBe(false);
     });
 
     it('should fill color', () => {
@@ -508,7 +508,7 @@ describe('CanvasManager', () => {
             button: 0
         }));
 
-        expect((manager as any)._inputManager.isPanning).toBe(true);
+        expect((manager as any).inputManager.isPanning).toBe(true);
 
         // Move
         canvas.dispatchEvent(new PointerEvent('pointermove', {
@@ -520,7 +520,7 @@ describe('CanvasManager', () => {
 
         // Up
         canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 }));
-        expect((manager as any)._inputManager.isPanning).toBe(false);
+        expect((manager as any).inputManager.isPanning).toBe(false);
     });
 
     it('should resize canvas', () => {

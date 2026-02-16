@@ -1,4 +1,4 @@
-import { ICONS } from '../icons';
+import { ICONS } from './svg-icons';
 
 export const iconMap: Record<string, string> = {
     'clear-btn': ICONS.clear,

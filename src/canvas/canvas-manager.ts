@@ -2,7 +2,8 @@ import type { ICanvasContext, Page } from './types';
 import { PageManager } from './page-manager';
 import { CanvasRenderer } from './renderer';
 import { InputManager } from './input-manager';
-import { HistoryManager, type DrawingAction } from '../history';
+import { HistoryManager } from '../history';
+import { type DrawingAction } from '../actions';
 import { TextTool } from '../text-tool';
 import type { TextAction } from '../text-action';
 import type { ToolConfig, DrawingTool, Point } from '../tools';
@@ -25,7 +26,7 @@ export class CanvasManager implements ICanvasContext {
     public historyManager: HistoryManager;
     public textTool: TextTool | null = null;
     private renderer: CanvasRenderer;
-    private _inputManager: InputManager;
+    private inputManager: InputManager;
 
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
     public onZoomChange: ((zoomPercent: number) => void) | null = null;
@@ -62,7 +63,7 @@ export class CanvasManager implements ICanvasContext {
             this.config
         );
 
-        this._inputManager = new InputManager(this);
+        this.inputManager = new InputManager(this);
 
         // Initialize
         this.resize();
@@ -171,7 +172,7 @@ export class CanvasManager implements ICanvasContext {
             this.textTool.commitText();
         }
         this.currentTool = tool;
-        this._inputManager.updateCursor();
+        this.inputManager.updateCursor();
     }
 
     public setConfig(config: Partial<ToolConfig>) {

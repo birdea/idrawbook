@@ -8,10 +8,7 @@ export interface Page {
     ctx: CanvasRenderingContext2D;
 }
 
-export interface CanvasState {
-    scale: number;
-    offset: { x: number, y: number };
-}
+
 
 import type { DrawingTool, ToolConfig, Point } from '../tools';
 import type { HistoryManager } from '../history';

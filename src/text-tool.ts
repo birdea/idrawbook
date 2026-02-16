@@ -1,9 +1,9 @@
 import type { ToolConfig } from './tools';
-import { ICONS } from './icons';
+import { ICONS } from './ui/svg-icons';
 import { TextAction } from './text-action';
 import type { TextConfig, TextPlacement } from './text-action';
 
-export { TextAction, type TextConfig, type TextPlacement };
+
 
 interface ViewportInfo {
     scale: number;
