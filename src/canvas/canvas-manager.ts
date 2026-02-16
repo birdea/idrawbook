@@ -61,8 +61,8 @@ export class CanvasManager implements ICanvasContext {
         (window as any)._lastInputManager = this._inputManager;
 
         // Initialize
-        this.addPage(1024, 1024);
         this.resize();
+        this.addPage(1024, 1024);
         this.render();
 
         window.addEventListener('resize', () => this.resize());
@@ -115,7 +115,9 @@ export class CanvasManager implements ICanvasContext {
 
     // Public API
     public addPage(width: number, height: number): string {
-        return this.pageManager.addPage(width, height);
+        const id = this.pageManager.addPage(width, height);
+        this.focusPage(id);
+        return id;
     }
 
     public removePage(id: string) {
