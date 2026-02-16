@@ -21,7 +21,25 @@ export class CanvasRenderer {
         // Transform for World
         this.ctx.setTransform(scale, 0, 0, scale, offset.x, offset.y);
 
+        // Calculate visible world bounds for culling
+        // Add a small margin to prevent artifacts at edges
+        const margin = 50;
+        const viewportLeft = -offset.x / scale - margin;
+        const viewportTop = -offset.y / scale - margin;
+        const viewportRight = (this.canvas.width - offset.x) / scale + margin;
+        const viewportBottom = (this.canvas.height - offset.y) / scale + margin;
+
         pages.forEach(page => {
+            // Check intersection (Culling)
+            // If page is completely outside the viewport, skip rendering
+            if (
+                page.x > viewportRight ||
+                page.x + page.width < viewportLeft ||
+                page.y > viewportBottom ||
+                page.y + page.height < viewportTop
+            ) {
+                return;
+            }
             // Shadow
             this.ctx.save();
             this.ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
