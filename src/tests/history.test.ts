@@ -141,31 +141,31 @@ describe('Action Classes', () => {
     });
 
     it('StrokeAction should call ToolUtils.drawStroke', () => {
-        const action = new StrokeAction([mockPoint], mockConfig, 'pencil');
+        const action = new StrokeAction([mockPoint], mockConfig, 'pencil', 'page-1');
         action.draw(mockCtx);
         expect(ToolUtils.drawStroke).toHaveBeenCalledWith(mockCtx, [mockPoint], 'pencil', expect.objectContaining(mockConfig));
     });
 
     it('ShapeAction (line) should call ToolUtils.drawLine', () => {
-        const action = new ShapeAction('line', mockPoint, mockPoint, mockConfig);
+        const action = new ShapeAction('line', mockPoint, mockPoint, mockConfig, 'page-1');
         action.draw(mockCtx);
         expect(ToolUtils.drawLine).toHaveBeenCalled();
     });
 
     it('ShapeAction (rect) should call ToolUtils.drawRect', () => {
-        const action = new ShapeAction('rect', mockPoint, mockPoint, mockConfig);
+        const action = new ShapeAction('rect', mockPoint, mockPoint, mockConfig, 'page-1');
         action.draw(mockCtx);
         expect(ToolUtils.drawRect).toHaveBeenCalled();
     });
 
     it('ShapeAction (circle) should call ToolUtils.drawCircle', () => {
-        const action = new ShapeAction('circle', mockPoint, mockPoint, mockConfig);
+        const action = new ShapeAction('circle', mockPoint, mockPoint, mockConfig, 'page-1');
         action.draw(mockCtx);
         expect(ToolUtils.drawCircle).toHaveBeenCalled();
     });
 
     it('FillAction should call ToolUtils.floodFill', () => {
-        const action = new FillAction(mockPoint, mockConfig);
+        const action = new FillAction(mockPoint, mockConfig, 'page-1');
         action.draw(mockCtx);
         expect(ToolUtils.floodFill).toHaveBeenCalled();
     });
