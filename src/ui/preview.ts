@@ -1,5 +1,5 @@
 import { CanvasManager } from '../canvas/canvas-manager';
-import { ICONS } from '../icons';
+import { ICONS } from './svg-icons';
 import type { Page } from '../canvas/types';
 
 export const updatePreview = (canvasManager: CanvasManager, updateHistoryButtons: () => void) => {

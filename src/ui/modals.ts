@@ -2,12 +2,15 @@ import { CanvasManager } from '../canvas/canvas-manager';
 import { GoogleService } from '../google';
 import { showToast } from './toast';
 
+import { injectModals } from './modal-templates';
+
 export class ModalManager {
     private selectedFolderId: string = '';
     private canvasManager: CanvasManager;
     private googleService: GoogleService;
 
     constructor(canvasManager: CanvasManager, googleService: GoogleService) {
+        injectModals();
         this.canvasManager = canvasManager;
         this.googleService = googleService;
         this.setupListeners();
