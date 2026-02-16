@@ -214,8 +214,8 @@ export class TextTool {
             return;
         }
 
-        if (this.isComposing) return;
-
+        // If we are composing (IME), we still want to cleanup the UI to avoid duplicates.
+        // We can choose to commit the current value or not. Usually, committing is safer for users.
         const text = this.textareaElement.value;
 
         // Recalculate localX/localY from current overlay position (may have been dragged)
@@ -298,6 +298,16 @@ export class TextTool {
     }
 
     private createOverlay(): void {
+        // Defensive: cleanup any abandoned overlays from the same container
+        if (this.overlayElement) {
+            this.overlayElement.remove();
+            this.overlayElement = null;
+        }
+
+        // Also check if any existing overlays are still in the container just to be absolutely sure
+        const existing = this.container.querySelectorAll('.text-overlay-container');
+        existing.forEach(el => el.remove());
+
         const overlay = document.createElement('div');
         overlay.className = 'text-overlay-container';
 
