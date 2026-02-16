@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { CanvasManager } from '../canvas/canvas-manager.ts';
+import { CanvasManager } from '../canvas/canvas-manager';
 import { TextAction } from '../text-tool';
 
 // Mock TextTool
@@ -555,11 +555,13 @@ describe('CanvasManager', () => {
         canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 50, clientY: 50 }));
     });
 
-    it('should alert on export if no active page', () => {
+    it('should show toast on export if no active page', () => {
         ((manager as any).pageManager as any).activePageId = null;
-        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+        const createSpy = vi.spyOn(document, 'createElement');
         manager.exportImage();
-        expect(alertSpy).toHaveBeenCalled();
+        // Should not create an anchor link for download since there's no active page
+        const anchorCalls = createSpy.mock.calls.filter(([tag]) => tag === 'a');
+        expect(anchorCalls.length).toBe(0);
     });
 
     it('should handle zoom out', () => {

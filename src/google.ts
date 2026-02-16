@@ -1,3 +1,5 @@
+import { showToast } from './ui/toast';
+
 declare const google: any;
 declare const gapi: any;
 
@@ -8,14 +10,21 @@ export interface GoogleUser {
 }
 
 export class GoogleService {
-    private clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    private apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+    private clientId: string;
+    private apiKey: string;
     private accessToken: string | null = null;
     private user: GoogleUser | null = null;
     private onStateChange: (user: GoogleUser | null) => void;
     private pickerApiLoaded = false;
 
     constructor(onStateChange: (user: GoogleUser | null) => void) {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+        if (!clientId || !apiKey) {
+            console.warn('Google API credentials not configured. Set VITE_GOOGLE_CLIENT_ID and VITE_GOOGLE_API_KEY in your .env file.');
+        }
+        this.clientId = clientId ?? '';
+        this.apiKey = apiKey ?? '';
         this.onStateChange = onStateChange;
         this.initGAPI();
     }
@@ -53,7 +62,7 @@ export class GoogleService {
         console.log('Login requested...');
         if (typeof google === 'undefined') {
             console.error('Google GSI script not loaded');
-            alert('Google identity services not loaded yet. Please try again in a moment.');
+            showToast('Google identity services not loaded yet. Please try again in a moment.');
             return;
         }
 
@@ -68,7 +77,7 @@ export class GoogleService {
                         this.fetchUserInfo();
                     } else if (response.error) {
                         console.error('Auth error:', response.error);
-                        alert(`Login failed: ${response.error}`);
+                        showToast(`Login failed: ${response.error}`);
                     }
                 },
             });
@@ -76,7 +85,7 @@ export class GoogleService {
             client.requestAccessToken();
         } catch (err) {
             console.error('Error during initTokenClient or requestAccessToken:', err);
-            alert('Failed to initialize Google login. Please check if your Client ID is correct.');
+            showToast('Failed to initialize Google login. Please check if your Client ID is correct.');
         }
     }
 
@@ -96,6 +105,10 @@ export class GoogleService {
             this.onStateChange(this.user);
         } catch (err) {
             console.error('Error fetching user info:', err);
+            this.accessToken = null;
+            this.user = null;
+            this.onStateChange(null);
+            showToast('Failed to fetch user info. Please try logging in again.');
         }
     }
 
@@ -107,12 +120,12 @@ export class GoogleService {
 
     public async showPicker(): Promise<string | null> {
         if (!this.accessToken) {
-            alert('Your session has expired or you are not logged in. Please login to Google first.');
+            showToast('Your session has expired or you are not logged in. Please login to Google first.');
             return null;
         }
 
         if (!this.pickerApiLoaded) {
-            alert('Google Picker is still loading. Please try again in a few seconds.');
+            showToast('Google Picker is still loading. Please try again in a few seconds.');
             return null;
         }
 
@@ -142,7 +155,7 @@ export class GoogleService {
             });
         } catch (err) {
             console.error('Error creating picker:', err);
-            alert('Failed to open Google Picker. Please check your browser console.');
+            showToast('Failed to open Google Picker. Please check your browser console.');
             return null;
         }
     }
@@ -150,13 +163,13 @@ export class GoogleService {
 
     public async uploadToDrive(blob: Blob, filename: string, mimeType: string, folderId?: string): Promise<boolean> {
         if (!this.accessToken) {
-            alert('Please login to Google first.');
+            showToast('Please login to Google first.');
             return false;
         }
 
         try {
             const boundary = 'foo_bar_baz';
-            const metadata: any = {
+            const metadata: { name: string; mimeType: string; parents?: string[] } = {
                 name: filename,
                 mimeType: mimeType
             };
@@ -194,17 +207,17 @@ export class GoogleService {
             });
 
             if (resp.ok) {
-                alert('Successfully saved to Google Drive!');
+                showToast('Successfully saved to Google Drive!');
                 return true;
             } else {
                 const error = await resp.json();
                 console.error('Drive upload failed:', error);
-                alert(`Failed to save to Google Drive: ${error.error?.message || 'Unknown error'}`);
+                showToast(`Failed to save to Google Drive: ${error.error?.message || 'Unknown error'}`);
                 return false;
             }
         } catch (err) {
             console.error('Error uploading to Drive:', err);
-            alert('An error occurred while uploading to Google Drive.');
+            showToast('An error occurred while uploading to Google Drive.');
             return false;
         }
     }

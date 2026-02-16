@@ -1,10 +1,11 @@
 import type { ICanvasContext, Page } from './types';
-import { PageManager } from './page-manager.ts';
-import { CanvasRenderer } from './renderer.ts';
-import { InputManager } from './input-manager.ts';
+import { PageManager } from './page-manager';
+import { CanvasRenderer } from './renderer';
+import { InputManager } from './input-manager';
 import { HistoryManager, type DrawingAction } from '../history';
 import { TextTool, type TextAction } from '../text-tool';
 import type { ToolConfig, DrawingTool, Point } from '../tools';
+import { showToast } from '../ui/toast';
 
 export class CanvasManager implements ICanvasContext {
     public canvas: HTMLCanvasElement;
@@ -31,10 +32,14 @@ export class CanvasManager implements ICanvasContext {
     constructor(canvasId: string, onUpdate?: () => void) {
         this.onUpdateCallback = onUpdate || null;
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
+        const ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) throw new Error('Failed to get 2d context from main canvas');
+        this.ctx = ctx;
 
         this.offscreenCanvas = document.createElement('canvas');
-        this.offscreenCtx = this.offscreenCanvas.getContext('2d')!;
+        const offCtx = this.offscreenCanvas.getContext('2d');
+        if (!offCtx) throw new Error('Failed to get 2d context from offscreen canvas');
+        this.offscreenCtx = offCtx;
 
         this.renderer = new CanvasRenderer(this.ctx, this.canvas);
         this.pageManager = new PageManager(
@@ -66,7 +71,6 @@ export class CanvasManager implements ICanvasContext {
         window.addEventListener('resize', () => this.resize());
     }
 
-    // ICanvasContext Implementation
     public getPages(): Map<string, Page> {
         return this.pageManager.getPageMap();
     }
@@ -124,7 +128,6 @@ export class CanvasManager implements ICanvasContext {
         const targetX = (this.canvas.width - page.width * this.scale) / 2 - (page.x * this.scale);
         const targetY = (this.canvas.height - page.height * this.scale) / 2 - (page.y * this.scale);
 
-        // Animate (simplified for now, could move to AnimationManager)
         this.offset.x = targetX;
         this.offset.y = targetY;
         this.render();
@@ -207,7 +210,7 @@ export class CanvasManager implements ICanvasContext {
     public exportImage() {
         const id = this.getActivePageId();
         if (!id) {
-            alert('No active page to export.');
+            showToast('No active page to export.');
             return;
         }
         const page = this.pageManager.get(id)!;
@@ -229,7 +232,10 @@ export class CanvasManager implements ICanvasContext {
     // Internal
     private handleTextToolAction(action: TextAction, replaceIndex: number) {
         const page = this.pageManager.get(action.placement.pageId);
-        if (!page) return;
+        if (!page) {
+            showToast('Text could not be committed: page no longer exists.');
+            return;
+        }
 
         if (replaceIndex >= 0) {
             if (action.text.trim().length === 0) {
