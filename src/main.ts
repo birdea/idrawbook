@@ -173,6 +173,25 @@ document.addEventListener('DOMContentLoaded', () => {
         canvasInfoDisplay.textContent = `Page (0/0) : 0 x 0 px`;
       }
     }
+
+    updateHistoryButtons();
+  };
+
+  const updateHistoryButtons = () => {
+    const undoBtn = document.getElementById('main-undo-btn') as HTMLButtonElement;
+    const redoBtn = document.getElementById('main-redo-btn') as HTMLButtonElement;
+    const menuUndo = document.getElementById('menu-undo') as HTMLButtonElement;
+    const menuRedo = document.getElementById('menu-redo') as HTMLButtonElement;
+
+    if (canvasManager) {
+      const canUndo = canvasManager.canUndo();
+      const canRedo = canvasManager.canRedo();
+
+      if (undoBtn) undoBtn.disabled = !canUndo;
+      if (redoBtn) redoBtn.disabled = !canRedo;
+      if (menuUndo) menuUndo.disabled = !canUndo;
+      if (menuRedo) menuRedo.disabled = !canRedo;
+    }
   };
 
   // --- Palette Settings ---
@@ -267,6 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 'menu-header-toggle-right' handled dynamically below
     'zoom-in-btn': ICONS.plus,
     'zoom-out-btn': ICONS.minus,
+    'main-undo-btn': ICONS.undo,
+    'main-redo-btn': ICONS.redo,
   };
 
   const updateOrientationIcons = () => {
@@ -451,8 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // EDIT
-  document.getElementById('menu-undo')?.addEventListener('click', () => canvasManager.undo());
   document.getElementById('menu-redo')?.addEventListener('click', () => canvasManager.redo());
+  document.getElementById('main-undo-btn')?.addEventListener('click', () => canvasManager.undo());
+  document.getElementById('main-redo-btn')?.addEventListener('click', () => canvasManager.redo());
 
   // Shortcuts for Undo/Redo
   window.addEventListener('keydown', (e) => {

@@ -134,6 +134,14 @@ export class HistoryManager {
         return [...this.undoStack];
     }
 
+    public canUndo(): boolean {
+        return this.undoStack.length > 0;
+    }
+
+    public canRedo(): boolean {
+        return this.redoStack.length > 0;
+    }
+
     public clear() {
         this.undoStack = [];
         this.redoStack = [];

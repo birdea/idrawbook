@@ -274,6 +274,14 @@ export class CanvasManager {
         }
     }
 
+    public canUndo(): boolean {
+        return this.historyManager.canUndo();
+    }
+
+    public canRedo(): boolean {
+        return this.historyManager.canRedo();
+    }
+
     private redraw(actions: DrawingAction[]) {
         // Redraw is complex with multiple pages and global history.
         // Simplified: Clear all pages, re-apply actions.
