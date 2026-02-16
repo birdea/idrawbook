@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { CanvasManager } from '../canvas';
+import { CanvasManager } from '../canvas/canvas-manager.ts';
 import { TextAction } from '../text-tool';
 
 // Mock TextTool
@@ -159,14 +159,14 @@ describe('CanvasManager', () => {
     });
 
     it('should initialize with one page', () => {
-        const pages = manager.getPages();
+        const pages = (manager as any).pageManager.getAll();
         expect(pages.length).toBe(1);
         expect(manager.getActivePageId()).toBe(pages[0].id);
     });
 
     it('should add a page', () => {
         const id = manager.addPage(500, 500);
-        const pages = manager.getPages();
+        const pages = (manager as any).pageManager.getAll();
         expect(pages.length).toBe(2);
         expect(pages[1].id).toBe(id);
     });
@@ -174,14 +174,14 @@ describe('CanvasManager', () => {
     it('should remove a page', () => {
         const id = manager.addPage(500, 500);
         manager.removePage(id);
-        const pages = manager.getPages();
+        const pages = (manager as any).pageManager.getAll();
         expect(pages.length).toBe(1);
     });
 
     it('should clear book', () => {
-        manager.clearBook();
-        expect(manager.getPages().length).toBe(0);
-        expect(manager.getActivePageId()).toBeNull();
+        manager.clear();
+        expect((manager as any).pageManager.getAll().length).toBe(1); // clear() adds one page back
+        expect(manager.getActivePageId()).not.toBeNull();
     });
 
     it('should set tool', () => {
@@ -212,7 +212,7 @@ describe('CanvasManager', () => {
         // drawing only pushes to history on pointerUP
 
         canvas.dispatchEvent(pointerEvent);
-        expect((manager as any).isDrawing).toBe(true);
+        expect((manager as any)._inputManager.isDrawing).toBe(true);
     });
 
     it('should handle pointer up (finish drawing)', () => {
@@ -249,7 +249,7 @@ describe('CanvasManager', () => {
         });
         canvas.dispatchEvent(upEvent);
 
-        expect((manager as any).isDrawing).toBe(false);
+        expect((manager as any)._inputManager.isDrawing).toBe(false);
         expect(historyMock).toHaveBeenCalled();
     });
 
@@ -302,7 +302,7 @@ describe('CanvasManager', () => {
         });
         canvas.dispatchEvent(p2);
 
-        expect((manager as any).activePointers.size).toBe(2);
+        expect((manager as any)._inputManager.activePointers.size).toBe(2);
 
         // Move to pinch in (reduce distance)
         const p2Move = new PointerEvent('pointermove', {
@@ -319,7 +319,7 @@ describe('CanvasManager', () => {
         // End
         const p1Up = new PointerEvent('pointerup', { pointerId: 1 });
         canvas.dispatchEvent(p1Up);
-        expect((manager as any).activePointers.size).toBe(1);
+        expect((manager as any)._inputManager.activePointers.size).toBe(1);
     });
 
     it('should handle export image', () => {
@@ -353,22 +353,22 @@ describe('CanvasManager', () => {
 
     it('should return empty thumbnail if no pages', () => {
         // manager.clear() adds a page back. Manually clear.
-        (manager as any).pages.clear();
-        (manager as any).activePageId = null;
+        (manager as any).pageManager.pages.clear();
+        ((manager as any).pageManager as any).activePageId = null;
 
         const thumb = manager.getThumbnail();
         expect(thumb).toBe('');
     });
 
     it('should return null from getBlob if no active page', async () => {
-        (manager as any).activePageId = null;
+        ((manager as any).pageManager as any).activePageId = null;
         const blob = await manager.getBlob();
         expect(blob).toBeNull();
     });
 
     it('should get thumbnail from first page if no active page', () => {
         vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,');
-        (manager as any).activePageId = null;
+        ((manager as any).pageManager as any).activePageId = null;
         // Default setup has page.
         const thumb = manager.getThumbnail();
         expect(thumb).toBe('data:image/png;base64,');
@@ -402,7 +402,7 @@ describe('CanvasManager', () => {
             button: 0
         }));
 
-        expect((manager as any).isMovingPage).toBe(true);
+        expect((manager as any)._inputManager.isMovingPage).toBe(true);
 
         // Move
         canvas.dispatchEvent(new PointerEvent('pointermove', {
@@ -414,7 +414,7 @@ describe('CanvasManager', () => {
 
         // Up
         canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 }));
-        expect((manager as any).isMovingPage).toBe(false);
+        expect((manager as any)._inputManager.isMovingPage).toBe(false);
     });
 
     it('should fill color', () => {
@@ -456,7 +456,7 @@ describe('CanvasManager', () => {
 
         // Mock a text action in history
         const textAction = new TextAction('test', {} as any, {} as any, {} as any);
-        (textAction as any).pageId = (manager as any).pages.keys().next().value; // Match first page id
+        (textAction as any).pageId = (manager as any).pageManager.pages.keys().next().value; // Match first page id
 
         // Push to history
         (manager as any).historyManager.push(textAction);
@@ -516,7 +516,7 @@ describe('CanvasManager', () => {
             button: 0
         }));
 
-        expect((manager as any).isPanning).toBe(true);
+        expect((manager as any)._inputManager.isPanning).toBe(true);
 
         // Move
         canvas.dispatchEvent(new PointerEvent('pointermove', {
@@ -528,7 +528,7 @@ describe('CanvasManager', () => {
 
         // Up
         canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1 }));
-        expect((manager as any).isPanning).toBe(false);
+        expect((manager as any)._inputManager.isPanning).toBe(false);
     });
 
     it('should resize canvas', () => {
@@ -570,7 +570,7 @@ describe('CanvasManager', () => {
     });
 
     it('should alert on export if no active page', () => {
-        (manager as any).activePageId = null;
+        ((manager as any).pageManager as any).activePageId = null;
         const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
         manager.exportImage();
         expect(alertSpy).toHaveBeenCalled();
