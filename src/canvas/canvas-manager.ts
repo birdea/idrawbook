@@ -4,9 +4,9 @@ import { CanvasRenderer } from './renderer';
 import { InputManager } from './input-manager';
 import { HistoryManager } from '../history';
 import { type DrawingAction } from '../actions';
-import { TextTool } from '../text-tool';
-import type { TextAction } from '../text-action';
-import type { ToolConfig, DrawingTool, Point } from '../tools';
+import { TextTool } from '../tools/text-tool';
+import type { TextAction } from '../actions/text-action';
+import type { ToolConfig, DrawingTool, Point } from '../tools/types';
 import { showToast } from '../ui/toast';
 
 export class CanvasManager implements ICanvasContext {

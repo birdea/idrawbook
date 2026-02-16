@@ -1,6 +1,6 @@
 import type { ICanvasContext, Page } from './types';
-import { TextAction } from '../text-action';
-import type { Point } from '../tools';
+import { TextAction } from '../actions/text-action';
+import type { Point } from '../tools/types';
 import { DrawingHandler } from './drawing-handler';
 
 export class InputManager {

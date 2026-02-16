@@ -1,5 +1,5 @@
 import { CanvasManager } from '../canvas/canvas-manager';
-import type { DrawingTool } from '../tools';
+import type { DrawingTool } from '../tools/types';
 
 export interface PaletteSettings {
     count: number;

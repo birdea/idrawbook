@@ -1,4 +1,4 @@
-import type { DrawingTool, ToolConfig } from '../tools';
+import type { DrawingTool, ToolConfig } from '../tools/types';
 import { CanvasManager } from '../canvas/canvas-manager';
 import { updateActiveSwatch } from './palette';
 

@@ -1,18 +1,4 @@
-export type DrawingTool = 'pencil' | 'brush' | 'pen' | 'eraser' | 'fill' | 'line' | 'rect' | 'circle' | 'hand' | 'text';
-
-export interface ToolConfig {
-    size: number;
-    color: string;
-    opacity: number;
-    hardness: number; // 0-100 (0=soft/blur, 100=hard/sharp)
-    pressure: number; // 0-100 (influence of pressure)
-}
-
-export interface Point {
-    x: number;
-    y: number;
-    pressure?: number;
-}
+import type { DrawingTool, ToolConfig, Point } from './types';
 
 export class ToolUtils {
     static drawStroke(ctx: CanvasRenderingContext2D, points: Point[], tool: DrawingTool, config: ToolConfig) {

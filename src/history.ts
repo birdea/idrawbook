@@ -1,5 +1,5 @@
 import { StrokeAction, ShapeAction, FillAction } from './actions';
-import type { ActionType, DrawingAction } from './actions';
+import type { ActionType, DrawingAction } from './actions/types';
 export type { ActionType, DrawingAction };
 export { StrokeAction, ShapeAction, FillAction };
 

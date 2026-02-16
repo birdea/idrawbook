@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CanvasManager } from '../canvas/canvas-manager';
-import { TextAction } from '../text-action';
+import { TextAction } from '../actions/text-action';
 
 // Mock TextAction (used by both text-tool and input-manager via text-action)
-vi.mock('../text-action', () => {
+vi.mock('../actions/text-action', () => {
     return {
         TextAction: vi.fn().mockImplementation(function (this: any) {
             this.hitTest = vi.fn().mockReturnValue(true);
@@ -14,7 +14,7 @@ vi.mock('../text-action', () => {
 });
 
 // Mock TextTool
-vi.mock('../text-tool', () => {
+vi.mock('../tools/text-tool', () => {
     return {
         TextTool: vi.fn().mockImplementation(function () {
             return {
