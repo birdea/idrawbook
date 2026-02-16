@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   canvasManager = new CanvasManager('main-canvas', handleUpdate);
+  canvasManager.onZoomChange = (zoomPercent: number) => {
+    const indicator = document.getElementById('zoom-level');
+    if (indicator) indicator.textContent = `${zoomPercent}%`;
+  };
   toolStateManager = new ToolStateManager(canvasManager);
   googleService = new GoogleService((user: GoogleUser | null) => updateGoogleUI(user));
   new ModalManager(canvasManager, googleService);
@@ -212,7 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Global Indicator Click
   document.getElementById('global-tool-indicator')?.addEventListener('click', () => {
-    const propPanel = document.querySelector('.properties-panel') as HTMLElement;
+    const propPanel = document.querySelector('.properties-panel') as HTMLElement | null;
+    if (!propPanel) return;
     if (propPanel.style.display === 'none') {
       propPanel.style.display = 'flex';
       document.getElementById('section-stroke')?.classList.remove('collapsed');

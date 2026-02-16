@@ -32,9 +32,7 @@ export class ModalManager {
             }
 
             if (confirm('Create new book? Unsaved changes will be lost.')) {
-                this.canvasManager.clear();
-                this.canvasManager.pageManager.clear();
-                this.canvasManager.addPage(width, height);
+                this.canvasManager.clear(width, height);
 
                 const wDisplay = document.getElementById('canvas-width');
                 const hDisplay = document.getElementById('canvas-height');
@@ -72,11 +70,16 @@ export class ModalManager {
             saveModal?.classList.remove('hidden');
         });
 
-        btnSaveLocal?.addEventListener('click', async () => {
+        const getSaveParams = () => {
             const filename = (saveFilenameInput.value || 'Untitled') + (saveExtLabel?.textContent || '.png');
             const formatEl = document.querySelector('input[name="save-format"]:checked') as HTMLInputElement;
             const format = formatEl ? formatEl.value : 'png';
             const quality = parseInt(saveQualityInput.value) / 100;
+            return { filename, format, quality };
+        };
+
+        btnSaveLocal?.addEventListener('click', async () => {
+            const { filename, format, quality } = getSaveParams();
 
             const originalText = btnSaveLocal.innerHTML;
             btnSaveLocal.textContent = 'Generating...';
@@ -95,10 +98,7 @@ export class ModalManager {
         });
 
         btnSaveDrive?.addEventListener('click', async () => {
-            const filename = (saveFilenameInput.value || 'Untitled') + (saveExtLabel?.textContent || '.png');
-            const formatEl = document.querySelector('input[name="save-format"]:checked') as HTMLInputElement;
-            const format = formatEl ? formatEl.value : 'png';
-            const quality = parseInt(saveQualityInput.value) / 100;
+            const { filename, format, quality } = getSaveParams();
 
             const originalText = btnSaveDrive.innerHTML;
             btnSaveDrive.textContent = 'Uploading...';

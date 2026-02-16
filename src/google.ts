@@ -42,11 +42,17 @@ export class GoogleService {
         if (typeof gapi !== 'undefined') {
             loadPicker();
         } else {
-            // Wait for script to load
+            // Wait for script to load (timeout after 30s)
+            let attempts = 0;
+            const maxAttempts = 300;
             const checkGapi = setInterval(() => {
+                attempts++;
                 if (typeof gapi !== 'undefined') {
                     loadPicker();
                     clearInterval(checkGapi);
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkGapi);
+                    console.warn('Google API (gapi) failed to load after 30s');
                 }
             }, 100);
         }
@@ -139,7 +145,7 @@ export class GoogleService {
                         if (data.action === google.picker.Action.PICKED) {
                             const folder = data.docs[0];
                             resolve(folder.id);
-                        } else if (data.action === google.picker.Action.CANCEL) {
+                        } else if (data.action !== google.picker.Action.LOADED) {
                             resolve(null);
                         }
                     });

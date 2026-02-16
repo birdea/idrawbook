@@ -20,7 +20,7 @@ export class PageManager {
         return Array.from(this.pages.values());
     }
 
-    public getPagesMap(): Map<string, Page> {
+    public getPageMap(): Map<string, Page> {
         return this.pages;
     }
 

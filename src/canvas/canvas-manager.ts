@@ -27,6 +27,7 @@ export class CanvasManager implements ICanvasContext {
     private _inputManager: InputManager;
 
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
+    public onZoomChange: ((zoomPercent: number) => void) | null = null;
 
     constructor(canvasId: string, onUpdate?: () => void) {
         this.onUpdateCallback = onUpdate || null;
@@ -61,7 +62,6 @@ export class CanvasManager implements ICanvasContext {
         );
 
         this._inputManager = new InputManager(this);
-        void this._inputManager;
 
         // Initialize
         this.resize();
@@ -72,7 +72,7 @@ export class CanvasManager implements ICanvasContext {
     }
 
     public getPages(): Map<string, Page> {
-        return this.pageManager.getPagesMap();
+        return this.pageManager.getPageMap();
     }
 
     public getActivePageId(): string | null {
@@ -133,10 +133,10 @@ export class CanvasManager implements ICanvasContext {
         this.render();
     }
 
-    public clear() {
+    public clear(pageWidth: number = 1024, pageHeight: number = 1024) {
         this.pageManager.clear();
         this.historyManager.clear();
-        this.addPage(1024, 1024);
+        this.addPage(pageWidth, pageHeight);
     }
 
     public undo() {
@@ -170,17 +170,7 @@ export class CanvasManager implements ICanvasContext {
             this.textTool.commitText();
         }
         this.currentTool = tool;
-        this.updateCursor();
-    }
-
-    private updateCursor() {
-        if (this.currentTool === 'hand') {
-            this.canvas.style.cursor = 'grab';
-        } else if (this.currentTool === 'text') {
-            this.canvas.style.cursor = 'text';
-        } else {
-            this.canvas.style.cursor = 'crosshair';
-        }
+        this._inputManager.updateCursor();
     }
 
     public setConfig(config: Partial<ToolConfig>) {
@@ -214,10 +204,7 @@ export class CanvasManager implements ICanvasContext {
     }
 
     private updateZoomIndicator() {
-        const indicator = document.getElementById('zoom-level');
-        if (indicator) {
-            indicator.textContent = `${Math.round(this.scale * 100)}%`;
-        }
+        this.onZoomChange?.(Math.round(this.scale * 100));
     }
 
     public exportImage() {

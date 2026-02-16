@@ -161,15 +161,7 @@ export class TextTool {
 
         this.createOverlay();
         this.positionOverlay();
-
-        requestAnimationFrame(() => {
-            this.textareaElement?.focus();
-        });
-
-        setTimeout(() => {
-            document.addEventListener('mousedown', this.boundHandleClickOutside, true);
-            document.addEventListener('keydown', this.boundHandleKeydown, true);
-        }, 0);
+        this.activateOverlay();
     }
 
     /** Re-edit an existing TextAction (clicked on committed text) */
@@ -198,6 +190,10 @@ export class TextTool {
             this.textareaElement.value = action.text;
         }
 
+        this.activateOverlay();
+    }
+
+    private activateOverlay(): void {
         requestAnimationFrame(() => {
             this.textareaElement?.focus();
         });
