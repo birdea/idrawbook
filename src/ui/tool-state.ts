@@ -21,8 +21,36 @@ export class ToolStateManager {
     private lastTool: DrawingTool = 'pencil';
     private canvasManager: CanvasManager;
 
+    // DOM Cache
+    private domCache: {
+        sizeInput: HTMLInputElement | null;
+        opacityInput: HTMLInputElement | null;
+        hardnessInput: HTMLInputElement | null;
+        pressureInput: HTMLInputElement | null;
+        colorPicker: HTMLInputElement | null;
+        toolBtns: NodeListOf<Element> | null;
+        indicator: HTMLElement | null;
+        indicatorColor: HTMLElement | null;
+        indicatorSize: HTMLElement | null;
+    } | null = null;
+
     constructor(canvasManager: CanvasManager) {
         this.canvasManager = canvasManager;
+        this.cacheDOMElements();
+    }
+
+    private cacheDOMElements() {
+        this.domCache = {
+            sizeInput: document.getElementById('stroke-size') as HTMLInputElement,
+            opacityInput: document.getElementById('stroke-opacity') as HTMLInputElement,
+            hardnessInput: document.getElementById('stroke-hardness') as HTMLInputElement,
+            pressureInput: document.getElementById('stroke-pressure') as HTMLInputElement,
+            colorPicker: document.getElementById('color-picker') as HTMLInputElement,
+            toolBtns: document.querySelectorAll('.tool-btn[data-tool]'),
+            indicator: document.getElementById('global-tool-indicator'),
+            indicatorColor: document.querySelector('#global-tool-indicator .tool-indicator-color') as HTMLElement,
+            indicatorSize: document.querySelector('#global-tool-indicator .tool-indicator-size') as HTMLElement,
+        };
     }
 
     public getToolState(tool: string): ToolState | undefined {
@@ -70,11 +98,8 @@ export class ToolStateManager {
     }
 
     private updateUIInputs(state: ToolState) {
-        const sizeInput = document.getElementById('stroke-size') as HTMLInputElement;
-        const opacityInput = document.getElementById('stroke-opacity') as HTMLInputElement;
-        const hardnessInput = document.getElementById('stroke-hardness') as HTMLInputElement;
-        const pressureInput = document.getElementById('stroke-pressure') as HTMLInputElement;
-        const colorPicker = document.getElementById('color-picker') as HTMLInputElement;
+        if (!this.domCache) return;
+        const { sizeInput, opacityInput, hardnessInput, pressureInput, colorPicker } = this.domCache;
 
         if (sizeInput) sizeInput.value = state.size.toString();
         if (opacityInput) opacityInput.value = state.opacity.toString();
@@ -84,7 +109,8 @@ export class ToolStateManager {
     }
 
     private updateActiveBtn(tool: DrawingTool) {
-        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+        if (!this.domCache?.toolBtns) return;
+        this.domCache.toolBtns.forEach(btn => {
             if (btn.getAttribute('data-tool') === tool) {
                 btn.classList.add('active');
             } else {
@@ -94,22 +120,20 @@ export class ToolStateManager {
     }
 
     public updateGlobalIndicator() {
-        const indicator = document.getElementById('global-tool-indicator');
+        if (!this.domCache) return;
+        const { indicator, indicatorColor, indicatorSize } = this.domCache;
         if (!indicator) return;
 
         const state = this.toolStates[this.currentActiveTool];
         if (state) {
-            const colorEl = indicator.querySelector('.tool-indicator-color') as HTMLElement;
-            const sizeEl = indicator.querySelector('.tool-indicator-size') as HTMLElement;
-
             indicator.style.display = 'flex';
-            if (colorEl) colorEl.style.backgroundColor = state.color;
-            if (sizeEl) {
+            if (indicatorColor) indicatorColor.style.backgroundColor = state.color;
+            if (indicatorSize) {
                 if (state.size === 0 && this.currentActiveTool === 'fill') {
-                    sizeEl.style.display = 'none';
+                    indicatorSize.style.display = 'none';
                 } else {
-                    sizeEl.style.display = 'block';
-                    sizeEl.textContent = state.size.toString();
+                    indicatorSize.style.display = 'block';
+                    indicatorSize.textContent = state.size.toString();
                 }
             }
         } else {

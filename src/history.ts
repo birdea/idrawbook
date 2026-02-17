@@ -111,4 +111,7 @@ export class HistoryManager {
         }
         return latest;
     }
+    public getCount(): number {
+        return this.undoStack.length;
+    }
 }

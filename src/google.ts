@@ -38,22 +38,35 @@ export class GoogleService {
             });
         };
 
-        if (typeof gapi !== 'undefined') {
-            loadPicker();
-        } else {
-            // Wait for script to load (timeout after 30s)
-            let attempts = 0;
-            const maxAttempts = 300;
-            const checkGapi = setInterval(() => {
-                attempts++;
-                if (typeof gapi !== 'undefined') {
-                    loadPicker();
-                    clearInterval(checkGapi);
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(checkGapi);
+        this.waitForGlobal('gapi')
+            .then(() => {
+                loadPicker();
+            })
+            .catch(() => {
+                // Silent fail or just log in debug (user already removed console logs, so we respect that)
+                // But we can show toast if we want, but sticking to existing pattern
+            });
+    }
+
+    private waitForGlobal(key: string, timeout = 30000): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if ((window as any)[key]) {
+                resolve();
+                return;
+            }
+
+            const startTime = Date.now();
+            const check = () => {
+                if ((window as any)[key]) {
+                    resolve();
+                } else if (Date.now() - startTime > timeout) {
+                    reject(new Error(`Timeout waiting for ${key}`));
+                } else {
+                    requestAnimationFrame(check);
                 }
-            }, 100);
-        }
+            };
+            requestAnimationFrame(check);
+        });
     }
 
     public login() {

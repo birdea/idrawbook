@@ -177,7 +177,7 @@ export class CanvasManager implements ICanvasContext {
 
     public pushAction(action: DrawingAction) {
         this.historyManager.push(action);
-        if (this.historyManager.getActions().length % 50 === 0) {
+        if (this.historyManager.getCount() % 20 === 0) {
             this.historyManager.addSnapshot(this.takeSnapshot());
         }
     }
