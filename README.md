@@ -2,7 +2,7 @@
 
 iDrawBook is a premium web-based drawing application inspired by Apple's design philosophy. Built with TypeScript and Vite, it offers a high-performance multi-page canvas environment, professional creative tools, Google Drive integration, and a sophisticated glassmorphism UI.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
@@ -60,6 +60,16 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
+
+### 🧪 Tests
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage report
+npm run coverage
+```
 
 ---
 
