@@ -38,6 +38,11 @@ vi.mock('../tools/text-tool', () => {
     };
 });
 
+// Mock Toast
+vi.mock('../ui/toast', () => ({
+    showToast: vi.fn()
+}));
+
 // Mock jsPDF
 const mockSave = vi.fn();
 const mockAddPage = vi.fn();
@@ -113,6 +118,7 @@ describe('CanvasManager', () => {
         } as unknown as CanvasRenderingContext2D;
 
         HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockContext);
+        HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,mock');
 
         onUpdateSpy = vi.fn();
 
@@ -242,5 +248,41 @@ describe('CanvasManager', () => {
         }));
 
         expect(canvas.style.cursor).toBe('move');
+    });
+
+    it('should export image', () => {
+        const createElementSpy = vi.spyOn(document, 'createElement');
+        const clickMock = vi.fn();
+
+        createElementSpy.mockReturnValue({
+            click: clickMock,
+            style: {},
+            setAttribute: vi.fn(),
+            download: '',
+            href: ''
+        } as unknown as HTMLElement);
+
+        // Mock active page canvas toDataURL
+        const page = (manager as any).pageManager.getActivePage();
+        page.canvas.toDataURL = vi.fn().mockReturnValue('data:image/png;base64,mock');
+
+        manager.exportImage();
+
+        expect(createElementSpy).toHaveBeenCalledWith('a');
+        expect(clickMock).toHaveBeenCalled();
+    });
+
+    it('should generate thumbnail', () => {
+        const thumbnail = manager.getThumbnail(100);
+        // Returns data url
+        expect(thumbnail).toContain('data:image/jpeg');
+    });
+
+    it('should get blob for export', async () => {
+        const page = (manager as any).pageManager.getActivePage();
+        page.canvas.toBlob = vi.fn().mockImplementation((cb) => cb(new Blob()));
+
+        const blob = await manager.getBlob('png');
+        expect(blob).toBeInstanceOf(Blob);
     });
 });
