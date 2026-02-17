@@ -44,7 +44,7 @@ export class PageManager {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) throw new Error('Failed to get 2d context for new page');;
+        if (!ctx) throw new Error('Failed to get 2d context for new page');
 
         // Fill white
         ctx.fillStyle = 'white';
