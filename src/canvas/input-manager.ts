@@ -1,25 +1,16 @@
 import type { ICanvasContext, Page } from './types';
-import { TextAction } from '../actions/text-action';
 import type { Point } from '../tools/types';
-import { DrawingHandler } from './drawing-handler';
 
 export class InputManager {
     private isPanning: boolean = false;
-    private isMovingPage: boolean = false;
     private activePointers: Map<number, Point> = new Map();
     private lastPinchDistance: number | null = null;
     private lastPinchCenter: Point | null = null;
     private lastMousePos: Point = { x: 0, y: 0 };
     private context: ICanvasContext;
-    private drawingHandler: DrawingHandler;
-
-    get isDrawing(): boolean {
-        return this.drawingHandler.getIsDrawing();
-    }
 
     constructor(context: ICanvasContext) {
         this.context = context;
-        this.drawingHandler = new DrawingHandler(context);
         this.setupListeners();
     }
 
@@ -36,6 +27,7 @@ export class InputManager {
     private handleWheel(e: WheelEvent) {
         e.preventDefault();
 
+        // If using text tool and editing, commit on zoom
         if (this.context.textTool?.isEditing()) {
             this.context.textTool.commitText();
         }
@@ -76,12 +68,12 @@ export class InputManager {
 
         this.activePointers.set(e.pointerId, { x, y });
 
+        // Multi-touch gestures
         if (this.activePointers.size >= 2) {
-            if (this.drawingHandler.getIsDrawing()) {
-                this.drawingHandler.cancelDrawing();
-            }
+            // Cancel current tool operation if any
+            this.context.toolManager.getCurrentTool().cancel();
+
             this.isPanning = false;
-            this.isMovingPage = false;
 
             const pointers = Array.from(this.activePointers.values());
             const p1 = pointers[0];
@@ -91,90 +83,31 @@ export class InputManager {
             return;
         }
 
+        // Global Middle/Right Click Panning
         if (e.pointerType === 'mouse' && (e.button === 1 || e.button === 2)) {
             this.isPanning = true;
             this.context.canvas.style.cursor = 'grabbing';
             return;
         }
 
-        let pressure = e.pressure;
-        if (e.pointerType === 'mouse') pressure = 0.5;
-
         const worldPos = this.context.screenToWorld(x, y);
         const targetPage = this.findTargetPage(worldPos);
 
-        if (this.context.currentTool === 'hand') {
-            if (targetPage) {
-                this.context.setActivePageId(targetPage.id);
-                this.isMovingPage = true;
-                this.context.canvas.style.cursor = 'move';
-                this.context.onUpdateCallback?.(targetPage.id);
-            } else {
-                this.isPanning = true;
-                this.context.canvas.style.cursor = 'grabbing';
-            }
-            return;
-        }
-
-        if (this.context.currentTool === 'text') {
-            this.handleTextToolDown(targetPage, worldPos);
-            return;
-        }
-
-        if (!targetPage) {
-            this.context.setActivePageId(null);
-            return;
-        }
-
-        this.context.setActivePageId(targetPage.id);
-
-        if (this.context.currentTool === 'fill') {
-            this.drawingHandler.startFill(targetPage, worldPos, pressure);
-            return;
-        }
-
-        this.drawingHandler.startDrawing(targetPage, worldPos, pressure);
-    }
-
-    private handleTextToolDown(targetPage: Page | null, worldPos: Point): void {
+        // Update active page based on tool interaction
         if (targetPage) {
             this.context.setActivePageId(targetPage.id);
-            if (this.context.textTool?.isEditing()) {
-                this.context.textTool.commitText();
-            }
-            const localPos = {
-                x: worldPos.x - targetPage.x,
-                y: worldPos.y - targetPage.y,
-            };
-            const pageInfo = { x: targetPage.x, y: targetPage.y, width: targetPage.width, height: targetPage.height };
-
-            const actions = this.context.historyManager.getActions();
-            let hitIndex = -1;
-            let hitAction: TextAction | null = null;
-            for (let i = actions.length - 1; i >= 0; i--) {
-                const a = actions[i];
-                if (a instanceof TextAction && a.pageId === targetPage.id) {
-                    if (a.hitTest(localPos.x, localPos.y, targetPage.ctx)) {
-                        hitIndex = i;
-                        hitAction = a;
-                        break;
-                    }
-                }
-            }
-
-            if (hitAction instanceof TextAction && hitIndex >= 0) {
-                this.context.textTool?.startReEditing(hitAction, hitIndex, pageInfo);
-            } else {
-                this.context.textTool?.startEditing(
-                    { pageId: targetPage.id, localX: localPos.x, localY: localPos.y },
-                    pageInfo
-                );
-            }
         } else {
-            if (this.context.textTool?.isEditing()) {
-                this.context.textTool.commitText();
+            // If clicking on empty space, maybe don't change active page unless tool supports it?
+            // But usually it's good to deselect page or keep last?
+            // Original logic: if !targetPage, setActivePageId(null).
+            if (this.context.currentTool !== 'hand') {
+                // Keep null if drawing on void? 
+                // Or just let tool handle it.
             }
         }
+
+        // Delegate to tool
+        this.context.toolManager.getCurrentTool().onDown(e, worldPos, targetPage);
     }
 
     private handlePointerMove(e: PointerEvent) {
@@ -192,10 +125,6 @@ export class InputManager {
             return;
         }
 
-        if (this.isPanning || this.isMovingPage || this.drawingHandler.getIsDrawing()) {
-            e.preventDefault();
-        }
-
         if (this.isPanning) {
             if (this.context.textTool?.isEditing()) {
                 this.context.textTool.commitText();
@@ -207,29 +136,15 @@ export class InputManager {
             return;
         }
 
-        if (this.isMovingPage) {
-            const activePageId = this.context.getActivePageId();
-            if (activePageId) {
-                const page = this.context.getPages().get(activePageId);
-                if (page) {
-                    const dx = (x - this.lastMousePos.x) / this.context.scale;
-                    const dy = (y - this.lastMousePos.y) / this.context.scale;
-                    page.x += dx;
-                    page.y += dy;
-                    this.lastMousePos = { x, y };
-                    this.context.render();
-                    this.context.onUpdateCallback?.(activePageId);
-                }
-            }
-            return;
-        }
+        const worldPos = this.context.screenToWorld(x, y);
+        const targetPage = this.findTargetPage(worldPos);
 
-        if (this.drawingHandler.getIsDrawing()) {
-            let pressure = e.pressure;
-            if (e.pointerType === 'mouse') pressure = 0.5;
-            this.drawingHandler.continueDrawing(x, y, pressure);
-            this.lastMousePos = { x, y };
-        }
+        // Update lastMousePos before calling tool? Or after?
+        // Some tools might use delta calculation if they tracked it, but they use e.movementX/Y usually or internal state.
+
+        this.context.toolManager.getCurrentTool().onMove(e, worldPos, targetPage);
+
+        this.lastMousePos = { x, y };
     }
 
     private handlePinchMove(): void {
@@ -274,23 +189,26 @@ export class InputManager {
 
         if (this.isPanning) {
             this.isPanning = false;
-            this.updateCursor();
-        }
-        if (this.isMovingPage) {
-            this.isMovingPage = false;
-            this.updateCursor();
+            this.updateCursor(); // Restore cursor
+            return;
         }
 
-        this.drawingHandler.finishDrawing(e);
+        const rect = this.context.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const worldPos = this.context.screenToWorld(x, y);
+        const targetPage = this.findTargetPage(worldPos);
+
+        this.context.toolManager.getCurrentTool().onUp(e, worldPos, targetPage);
     }
 
     public updateCursor() {
-        if (this.context.currentTool === 'hand') {
-            this.context.canvas.style.cursor = 'grab';
-        } else if (this.context.currentTool === 'text') {
-            this.context.canvas.style.cursor = 'text';
-        } else {
-            this.context.canvas.style.cursor = 'crosshair';
-        }
+        // Delegate cursor update to current tool if needed, or reset to tool's default
+        // The ToolManager handled tool activation which sets cursor.
+        // But if we were panning (override cursor), we need to restore it.
+        const tool = this.context.toolManager.getCurrentTool();
+
+        // We can just call activate again?
+        tool.activate();
     }
 }

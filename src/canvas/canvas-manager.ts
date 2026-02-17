@@ -5,12 +5,13 @@ import { InputManager } from './input-manager';
 import { HistoryManager } from '../history';
 import { type DrawingAction } from '../actions';
 import { TextTool } from '../tools/text-tool';
-import type { TextAction } from '../actions/text-action';
 import type { ToolConfig, DrawingTool, Point } from '../tools/types';
 import { showToast } from '../ui/toast';
+import { ToolManager } from './tool-manager';
 
 export class CanvasManager implements ICanvasContext {
     public canvas: HTMLCanvasElement;
+    public container: HTMLElement;
     public ctx: CanvasRenderingContext2D;
     public offscreenCanvas: HTMLCanvasElement;
     public offscreenCtx: CanvasRenderingContext2D;
@@ -23,10 +24,11 @@ export class CanvasManager implements ICanvasContext {
 
     // Managers
     public pageManager: PageManager;
+    public toolManager: ToolManager;
     public historyManager: HistoryManager;
     public textTool: TextTool | null = null;
     private renderer: CanvasRenderer;
-    private inputManager: InputManager;
+
 
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
     public onZoomChange: ((zoomPercent: number) => void) | null = null;
@@ -36,7 +38,11 @@ export class CanvasManager implements ICanvasContext {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         const ctx = this.canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) throw new Error('Failed to get 2d context from main canvas');
+        if (!ctx) throw new Error('Failed to get 2d context from main canvas');
         this.ctx = ctx;
+
+        if (!this.canvas.parentElement) throw new Error('Canvas must have a parent element');
+        this.container = this.canvas.parentElement;
 
         this.offscreenCanvas = document.createElement('canvas');
         const offCtx = this.offscreenCanvas.getContext('2d');
@@ -50,21 +56,10 @@ export class CanvasManager implements ICanvasContext {
         );
         this.historyManager = new HistoryManager();
 
-        // Initialize Text Tool
-        this.textTool = new TextTool(
-            'canvas-container',
-            () => ({
-                scale: this.scale,
-                offsetX: this.offset.x,
-                offsetY: this.offset.y
-            }),
-            () => this.canvas.getBoundingClientRect(),
-            (action: TextAction, replaceIndex: number) => this.handleTextToolAction(action, replaceIndex),
-            this.config,
-            () => this.redraw(this.historyManager.getActions())
-        );
+        this.toolManager = new ToolManager(this);
+        this.textTool = this.toolManager.getTool('text') as TextTool;
 
-        this.inputManager = new InputManager(this);
+        new InputManager(this);
 
         // Initialize
         this.resize();
@@ -173,16 +168,11 @@ export class CanvasManager implements ICanvasContext {
     }
 
     public setTool(tool: DrawingTool) {
-        if (this.currentTool === 'text' && tool !== 'text' && this.textTool?.isEditing()) {
-            this.textTool.commitText();
-        }
-        this.currentTool = tool;
-        this.inputManager.updateCursor();
+        this.toolManager.setTool(tool);
     }
 
     public setConfig(config: Partial<ToolConfig>) {
         this.config = { ...this.config, ...config };
-        this.textTool?.updateToolConfig(this.config);
     }
 
     public resize() {
@@ -237,27 +227,7 @@ export class CanvasManager implements ICanvasContext {
     }
 
     // Internal
-    private handleTextToolAction(action: TextAction, replaceIndex: number) {
-        const page = this.pageManager.get(action.placement.pageId);
-        if (!page) {
-            showToast('Text could not be committed: page no longer exists.');
-            return;
-        }
 
-        if (replaceIndex >= 0) {
-            if (action.text.trim().length === 0) {
-                this.historyManager.removeAction(replaceIndex);
-            } else {
-                this.historyManager.replaceAction(replaceIndex, action);
-            }
-            this.redraw(this.historyManager.getActions());
-        } else {
-            action.draw(page.ctx);
-            this.historyManager.push(action);
-            this.render();
-        }
-        this.onUpdateCallback?.(action.placement.pageId);
-    }
 
     public getThumbnail(width: number = 200, pageId?: string): string {
         let targetCanvas: HTMLCanvasElement;

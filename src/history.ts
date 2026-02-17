@@ -3,12 +3,14 @@ import type { ActionType, DrawingAction } from './actions/types';
 export type { ActionType, DrawingAction };
 export { StrokeAction, ShapeAction, FillAction };
 
+import { APP_CONFIG } from './config';
+
 export class HistoryManager {
     private undoStack: DrawingAction[] = [];
     private redoStack: DrawingAction[] = [];
-    private maxHistory: number = 100;
+    private maxHistory: number = APP_CONFIG.HISTORY_LIMIT;
 
-    constructor(initialLimit: number = 100) {
+    constructor(initialLimit: number = APP_CONFIG.HISTORY_LIMIT) {
         this.maxHistory = initialLimit;
     }
 
