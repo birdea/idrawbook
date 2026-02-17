@@ -38,7 +38,6 @@ export class CanvasManager implements ICanvasContext {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         const ctx = this.canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) throw new Error('Failed to get 2d context from main canvas');
-        if (!ctx) throw new Error('Failed to get 2d context from main canvas');
         this.ctx = ctx;
 
         if (!this.canvas.parentElement) throw new Error('Canvas must have a parent element');

@@ -60,30 +60,7 @@ describe('TextTool', () => {
         const placement: TextPlacement = { pageId: 'page1', localX: 10, localY: 10 };
         const pageInfo = { x: 0, y: 0, width: 800, height: 600 };
 
-        // Use private method or trigger via onDown?
-        // Let's use internal method as tests did before, but updated signature
-        // The implementation has startEditing as private? No, let's check.
-        // In my implementation: private startEditing?
-        // Checking Step 92: private startEditing.
-        // Checking Step 116 (InputManager): this.context.textTool?.startEditing(...) 
-        // So it MUST be public.
-        // I declared it private in Step 92? 
-        // "private startEditing"
-        // Wait, InputManager calls it. So it must fail compile if private.
-        // I need to check if I made it public.
-
-        // If it is private, I should make it public or test via onDown.
-        // Test via onDown is better integration test.
-
-        // Let's modify InputManager to call public method? 
-        // Or make it public in TextTool.
-
-        // Based on InputManager code in Step 120, checking:
-        // `this.context.textTool?.startEditing`
-        // If I defined it private, TS should error.
-
-        // I will assume I need to fix visibility in TextTool IF it is private.
-        // But for this test, I can cast to any.
+        // Test via onDown is better integration test, but we can trigger startEditing directly for unit testing.
         (tool as any).startEditing(placement, pageInfo);
 
         expect(tool.isEditing()).toBe(true);

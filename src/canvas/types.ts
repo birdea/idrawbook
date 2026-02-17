@@ -32,12 +32,7 @@ export interface ICanvasContext {
 
     historyManager: HistoryManager;
     toolManager: ToolManager;
-    textTool: TextTool | null; // Deprecated, remove? No, kept for now to avoid too many changes, or remove it?
-    // User wants "Refactor" so I should remove it if ToolManager handles it.
-    // TextTool is now in ToolManager.
-    // But accessing textTool specific methods (getEditingActionIndex) might be needed by CanvasManager?
-    // CanvasManager used `textTool.getEditingActionIndex()` in `redraw`.
-    // So I can access it via `toolManager.getTool('text') as TextTool`.
+    textTool: TextTool | null;
 
     // Page Access
 

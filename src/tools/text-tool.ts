@@ -119,7 +119,7 @@ export class TextTool extends BaseTool {
         return this._isEditing;
     }
 
-    // ... Internal logic copied from old TextTool ...
+
 
     private startEditing(
         placement: TextPlacement,
@@ -208,7 +208,7 @@ export class TextTool extends BaseTool {
         this.context.redraw();
     }
 
-    // ... Helper to redraw everything ...
+
 
     public cancelEditing(): void {
         this.cleanup();
@@ -282,8 +282,7 @@ export class TextTool extends BaseTool {
         this.context.onUpdateCallback?.();
     }
 
-    // ... Methods for Overlay creation, Drag, Options Popup (copied from original) ...
-    // To save token space and time, I will include them in write_to_file.
+
 
     private createOverlay(): void {
         if (this.overlayElement) {
@@ -346,8 +345,7 @@ export class TextTool extends BaseTool {
         this.applyTextConfigToTextarea();
     }
 
-    // ... rest of private methods (autoResize, startDrag, positionOverlay, applyTextConfig, options popup) ... 
-    // I need to ensure I copy them.
+
 
     private autoResizeTextarea(): void {
         if (!this.textareaElement) return;
@@ -454,11 +452,10 @@ export class TextTool extends BaseTool {
         }
     }
 
-    // ... createOptionsPopup is LONG. I will rely on reading it from previous view_file.
-    // I need to implement it.
+
 
     private createOptionsPopup(): HTMLDivElement {
-        // ... implementation ...
+
         const popup = document.createElement('div');
         popup.className = 'text-options-popup';
         popup.addEventListener('mousedown', (e) => e.stopPropagation());
