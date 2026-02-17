@@ -165,7 +165,6 @@ header {
     border-radius: 6px;
     cursor: pointer;
     display: flex;
-    display: flex;
     justify-content: space-between;
     align-items: center;
 }

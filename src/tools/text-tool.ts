@@ -548,7 +548,7 @@ export class TextTool extends BaseTool {
         sep.className = 'text-options-separator';
         popup.appendChild(sep);
 
-        // Clear Text
+        // Clear Tex
         const clearRow = document.createElement('div');
         clearRow.className = 'text-options-row';
         const clearBtn = document.createElement('button');

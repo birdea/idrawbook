@@ -10,7 +10,7 @@ describe('TextTool', () => {
     let tool: TextTool;
     const toolConfig: ToolConfig = { size: 10, color: '#000000', opacity: 100, hardness: 100, pressure: 50 };
 
-    // Mock Context
+    // Mock Contex
     let context: ICanvasContext;
     let historyManagerMock: any;
 
@@ -163,7 +163,7 @@ describe('TextAction', () => {
 
     it('hitTest should detect hits', () => {
         const action = new TextAction('Hit me', placement, textConfig, toolConfig);
-        // hit test logic... reused from previous test
+        // hit test logic... reused from previous tes
         const hit = action.hitTest(60, 60, ctx);
         expect(hit).toBe(true);
         const miss = action.hitTest(10, 10, ctx);

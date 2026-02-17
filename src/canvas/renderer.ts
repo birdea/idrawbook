@@ -22,7 +22,7 @@ export class CanvasRenderer {
     public render(pages: Map<string, Page>, scale: number, offset: Point, activePageId: string | null) {
         // Clear main canvas with workspace background
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        // Use a slightly darker gray than apple-bg for contrast
+        // Use a slightly darker gray than apple-bg for contras
         this.ctx.fillStyle = this.isDarkMode ? '#121212' : '#e0e0e2';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -60,7 +60,7 @@ export class CanvasRenderer {
             this.ctx.fillRect(page.x, page.y, page.width, page.height);
             this.ctx.restore();
 
-            // Content
+            // Conten
             this.ctx.drawImage(page.canvas, page.x, page.y);
 
             // Highlight active? (optional visual feedback)

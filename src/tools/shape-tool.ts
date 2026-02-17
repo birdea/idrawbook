@@ -36,7 +36,7 @@ export class ShapeTool extends BaseTool {
         // ToolUtils.setupContext(this.context.ctx, ...);
         // ToolUtils.draw...(this.context.ctx, startScreen, currentScreen);
 
-        // We need to coordinate with renderer. 
+        // We need to coordinate with renderer.
         // Rendering logic in DrawingHandler.continueDrawing for shapes:
         // 1. context.render() -> clears and draws pages
         // 2. setupContext(context.ctx) -> sets styles on main ctx
@@ -78,7 +78,7 @@ export class ShapeTool extends BaseTool {
         ToolUtils.setupContext(targetPage.ctx, this.context.currentTool, this.context.config);
         let action: ShapeAction | null = null;
 
-        // We need shape type. context.currentTool is type DrawingTool. 
+        // We need shape type. context.currentTool is type DrawingTool.
         // We cast it if valid, or check. ShapeTool should only be active for shapes.
         const shapeType = this.context.currentTool;
 
