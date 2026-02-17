@@ -114,6 +114,71 @@ describe('HistoryManager', () => {
         expect(history.getActions()).toHaveLength(1);
         expect(history.getActions()[0]).toBe(action2);
     });
+
+    it('should manage snapshots', () => {
+        const action1 = { type: 'stroke' } as any;
+        const action2 = { type: 'line' } as any;
+        const action3 = { type: 'rect' } as any;
+
+        history.push(action1);
+        history.addSnapshot('snap1'); // index 0
+
+        history.push(action2);
+        history.push(action3);
+        history.addSnapshot('snap2'); // index 2
+
+        expect(history.getLatestSnapshot(1)).toEqual({ index: 0, data: 'snap1' });
+        expect(history.getLatestSnapshot(2)).toEqual({ index: 0, data: 'snap1' }); // covers 0..1?
+        // getLatestSnapshot(count) finds snapshot with index <= count - 1
+        // count=1 -> targetIndex=0. snap1 index=0. Match.
+        // count=2 -> targetIndex=1. snap1 index=0. Match. snap2 index=2 > 1.
+
+        expect(history.getLatestSnapshot(3)).toEqual({ index: 2, data: 'snap2' });
+        expect(history.getLatestSnapshot(100)).toEqual({ index: 2, data: 'snap2' });
+    });
+
+    it('should invalidated snapshots on history change', () => {
+        history.push({ type: '1' } as any);
+        history.addSnapshot('s1');
+        history.push({ type: '2' } as any);
+
+        history.undo(); // Undo removes action? No, undo just moves pointer usually, but here implementation pops from undoStack.
+        // implementation: undoStack vs redoStack.
+        // undo() pops from undoStack.
+
+        // Wait, does undo invalidate snapshots? The code does NOT seem to invalidate snapshots on undo/redo explicitly in `undo` method?
+        // Let's check source.
+        // undo(): pop from undoStack.
+        // redostack push.
+        // valid actions are now 0..length-1.
+        // If we restore from snapshot, we restore state.
+
+        // But the question is: if I undo, is the snapshot for that undone action still valid?
+        // Snapshot is associated with index. If index is removed from undoStack...
+        // Actually undoStack size decreases.
+        // Code: push() checks undoStack.length > maxHistory.
+
+        // But `undo` method doesn't touch snapshots array.
+        // However, getLatestSnapshot uses `actionCount` which is effectively current undostack length when looking for recovery?
+        // If I undo, undoStack.length becomes smaller.
+        // If I call getLatestSnapshot(newLength), it will find snapshots with index < newLength.
+
+        // Tests for replace/remove action explicitly filter snapshots.
+
+        history.removeAction(0);
+        // Snapshot at index 0 (s1) should be removed because s.index < index (0 < 0 is false).
+        // Wait: `this.snapshots = this.snapshots.filter(s => s.index < index);`
+        // If index=0, keeps nothing?
+        // logic: s.index < 0 -> false. So clears everything. Correct.
+
+        expect(history.getLatestSnapshot(1)).toBeNull();
+    });
+
+    it('should get count', () => {
+        expect(history.getCount()).toBe(0);
+        history.push({} as any);
+        expect(history.getCount()).toBe(1);
+    });
 });
 
 describe('Action Classes', () => {

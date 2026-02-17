@@ -15,6 +15,7 @@ describe('TextTool', () => {
     let historyManagerMock: any;
 
     beforeEach(() => {
+        vi.useFakeTimers();
         document.body.innerHTML = '<div id="app"><div id="canvas-container"><canvas id="canvas"></canvas></div></div>';
         container = document.getElementById('canvas-container') as HTMLElement;
         canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -50,6 +51,7 @@ describe('TextTool', () => {
         // tool.destroy(); // TextTool doesn't have destroy anymore, cleanup is sufficient or create new one
         document.body.innerHTML = '';
         vi.clearAllMocks();
+        vi.useRealTimers();
     });
 
     it('should initialize correctly', () => {
@@ -142,6 +144,85 @@ describe('TextTool', () => {
         tool.commitText();
 
         expect(historyManagerMock.removeAction).toHaveBeenCalledWith(2);
+    });
+
+    it('should open options popup', () => {
+        (tool as any).startEditing({ pageId: 'p1', localX: 0, localY: 0 }, { x: 0, y: 0, width: 100, height: 100 });
+
+        const optionsBtn = container.querySelector('.text-options-btn-trigger') as HTMLButtonElement;
+        expect(optionsBtn).not.toBeNull();
+        optionsBtn.click();
+
+        const popup = container.querySelector('.text-options-popup');
+        expect(popup).not.toBeNull();
+    });
+
+    it('should update font size from popup', () => {
+        (tool as any).startEditing({ pageId: 'p1', localX: 0, localY: 0 }, { x: 0, y: 0, width: 100, height: 100 });
+        const optionsBtn = container.querySelector('.text-options-btn-trigger') as HTMLButtonElement;
+        optionsBtn.click();
+
+        const input = container.querySelector('input[type="number"]') as HTMLInputElement; // Font size input is first number input
+        expect(input).not.toBeNull();
+
+        input.value = '50';
+        input.dispatchEvent(new Event('input'));
+
+        const textarea = container.querySelector('textarea')!;
+        expect(textarea.style.fontSize).toContain('50px');
+    });
+
+    it('should drag overlay', () => {
+        (tool as any).startEditing({ pageId: 'p1', localX: 0, localY: 0 }, { x: 0, y: 0, width: 100, height: 100 });
+        const overlay = container.querySelector('.text-overlay-container') as HTMLElement;
+        const handle = container.querySelector('.text-overlay-drag-handle') as HTMLElement;
+
+        // Mock pointer capture methods
+        handle.setPointerCapture = vi.fn();
+
+        // Start drag
+        handle.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, screenX: 100, screenY: 100, pointerId: 1 }));
+
+        // Move
+        document.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, screenX: 150, screenY: 150 }));
+
+        expect(overlay.style.left).not.toBe('');
+        expect(overlay.style.top).not.toBe('');
+
+        // Up
+        document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+
+        // Move after up (should not move)
+        const oldLeft = overlay.style.left;
+        document.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, screenX: 200, screenY: 200 }));
+        expect(overlay.style.left).toBe(oldLeft);
+    });
+
+    it('should commit on click outside', () => {
+        (tool as any).startEditing({ pageId: 'p1', localX: 0, localY: 0 }, { x: 0, y: 0, width: 100, height: 100 });
+        vi.runAllTimers();
+
+        const textarea = container.querySelector('textarea')!;
+        textarea.value = 'Clicked Outside';
+
+        // Click on document body (outside overlay)
+        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+        expect(tool.isEditing()).toBe(false);
+        expect(historyManagerMock.push).toHaveBeenCalled();
+    });
+
+    it('should commit on Escape', () => {
+        (tool as any).startEditing({ pageId: 'p1', localX: 0, localY: 0 }, { x: 0, y: 0, width: 100, height: 100 });
+        vi.runAllTimers();
+
+        const textarea = container.querySelector('textarea')!;
+        textarea.value = 'Escape Key';
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+        expect(tool.isEditing()).toBe(false);
+        expect(historyManagerMock.push).toHaveBeenCalled();
     });
 });
 
