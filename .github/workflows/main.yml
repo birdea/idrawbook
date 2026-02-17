@@ -16,4 +16,9 @@ jobs:
           cache: 'npm'
       - run: npm install
       - run: npm run build  # Ant Design/React 빌드 테스트
-      - run: npm test       # 작성하신 테스트 코드 실행
+      - run: npm run coverage  # 작성하신 테스트 코드 실행 + 커버리지 생성
+      - name: Upload coverage reports to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
