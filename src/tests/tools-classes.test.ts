@@ -201,11 +201,29 @@ describe('Tools Classes', () => {
             tool.onDown({ pressure: 0.5 } as PointerEvent, { x: 150, y: 150 }, page);
             tool.onMove({ clientX: 200, clientY: 200 } as PointerEvent, { x: 200, y: 200 }, page);
             expect(ToolUtils.drawCircle).toHaveBeenCalled();
+            // Test Up
+            tool.onUp({ pressure: 0.5 } as PointerEvent, { x: 200, y: 200 }, page);
+            expect(ToolUtils.drawCircle).toHaveBeenCalledWith(page.ctx, expect.any(Object), expect.any(Object));
 
             // Line
             context.currentTool = 'line';
+            tool.onDown({ pressure: 0.5 } as PointerEvent, { x: 150, y: 150 }, page);
             tool.onMove({ clientX: 200, clientY: 200 } as PointerEvent, { x: 200, y: 200 }, page);
             expect(ToolUtils.drawLine).toHaveBeenCalled();
+            // Test Up
+            tool.onUp({ pressure: 0.5 } as PointerEvent, { x: 200, y: 200 }, page);
+            expect(ToolUtils.drawLine).toHaveBeenCalledWith(page.ctx, expect.any(Object), expect.any(Object));
+        });
+
+        it('should handle cancel/invalid state', () => {
+            const tool = new ShapeTool(context);
+            // Call onUp without onDown (isDrawing = false)
+            tool.onUp({} as PointerEvent, { x: 0, y: 0 }, page);
+            expect(context.pushAction).not.toHaveBeenCalled();
+
+            // Call onMove without onDown
+            tool.onMove({} as PointerEvent, { x: 0, y: 0 }, page);
+            expect(ToolUtils.drawRect).not.toHaveBeenCalled();
         });
     });
 
