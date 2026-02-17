@@ -1,5 +1,5 @@
 import type { ICanvasContext } from '../canvas/types';
-import type { ITool } from './i-tool';
+import type { ITool } from './itool';
 import type { Page } from '../canvas/types';
 import type { Point } from './types';
 

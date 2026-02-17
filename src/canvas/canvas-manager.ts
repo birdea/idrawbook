@@ -29,7 +29,6 @@ export class CanvasManager implements ICanvasContext {
     public textTool: TextTool | null = null;
     private renderer: CanvasRenderer;
 
-
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
     public onZoomChange: ((zoomPercent: number) => void) | null = null;
 
@@ -263,7 +262,6 @@ export class CanvasManager implements ICanvasContext {
     }
 
     // Internal
-
 
     public getThumbnail(width: number = 200, pageId?: string): string {
         let targetCanvas: HTMLCanvasElement;
