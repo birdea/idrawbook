@@ -14,8 +14,8 @@ export class FillAction implements DrawingAction {
         this.pageId = pageId;
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    async draw(ctx: CanvasRenderingContext2D) {
         // Flood fill with the color from config
-        ToolUtils.floodFill(ctx, this.point, this.config.color);
+        await ToolUtils.floodFill(ctx, this.point, this.config.color);
     }
 }

@@ -5,18 +5,25 @@ import { APP_CONFIG } from '../config';
 export class CanvasRenderer {
     private ctx: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
+    private isDarkMode: boolean = false;
 
     constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
         this.ctx = ctx;
         this.canvas = canvas;
+
+        // Initialize and listen for dark mode changes
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.isDarkMode = mediaQuery.matches;
+        mediaQuery.addEventListener('change', (e) => {
+            this.isDarkMode = e.matches;
+        });
     }
 
     public render(pages: Map<string, Page>, scale: number, offset: Point, activePageId: string | null) {
         // Clear main canvas with workspace background
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         // Use a slightly darker gray than apple-bg for contrast
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        this.ctx.fillStyle = isDark ? '#121212' : '#e0e0e2';
+        this.ctx.fillStyle = this.isDarkMode ? '#121212' : '#e0e0e2';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Transform for World

@@ -150,17 +150,9 @@ export class ToolUtils {
         ctx.stroke();
     }
 
-    static floodFill(ctx: CanvasRenderingContext2D, start: Point, fillColor: string) {
-        // TODO: Performance - Move to Web Worker to avoid blocking main thread
-        // Current implementation processes pixels synchronously and can freeze UI
-        // on large canvas (1024x1024 = ~4MB ImageData processing)
+    static async floodFill(ctx: CanvasRenderingContext2D, start: Point, fillColor: string) {
         const width = ctx.canvas.width;
         const height = ctx.canvas.height;
-
-        // Warn if canvas is large enough to cause performance issues
-        if (width * height > 2000000) {
-            console.warn('Flood fill may cause performance issues on large canvas. Consider using Web Worker.');
-        }
 
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
@@ -180,37 +172,34 @@ export class ToolUtils {
         const startB = data[startPos + 2];
         const startA = data[startPos + 3];
 
-        // If target color is same as start color, return
-        if (startR === targetColorRGB.r && startG === targetColorRGB.g && startB === targetColorRGB.b && startA === 255) return;
-
-        const stack = [[startX, startY]];
-
-        const matchStartColor = (pos: number) => {
-            return data[pos] === startR && data[pos + 1] === startG && data[pos + 2] === startB && data[pos + 3] === startA;
-        };
-
-        const colorPixel = (pos: number) => {
-            data[pos] = targetColorRGB.r;
-            data[pos + 1] = targetColorRGB.g;
-            data[pos + 2] = targetColorRGB.b;
-            data[pos + 3] = 255;
-        };
-
-        while (stack.length) {
-            const [x, y] = stack.pop()!;
-            const pos = (y * width + x) * 4;
-
-            if (matchStartColor(pos)) {
-                colorPixel(pos);
-
-                if (x > 0 && matchStartColor((y * width + (x - 1)) * 4)) stack.push([x - 1, y]);
-                if (x < width - 1 && matchStartColor((y * width + (x + 1)) * 4)) stack.push([x + 1, y]);
-                if (y > 0 && matchStartColor(((y - 1) * width + x) * 4)) stack.push([x, y - 1]);
-                if (y < height - 1 && matchStartColor(((y + 1) * width + x) * 4)) stack.push([x, y + 1]);
-            }
+        if (startR === targetColorRGB.r && startG === targetColorRGB.g && startB === targetColorRGB.b && startA === 255) {
+            return;
         }
 
-        ctx.putImageData(imageData, 0, 0);
+        return new Promise<void>((resolve) => {
+            const worker = new Worker(new URL('../workers/flood-fill.worker.ts', import.meta.url), {
+                type: 'module'
+            });
+
+            worker.onmessage = (e) => {
+                const { data: newData } = e.data;
+                const newImageData = new ImageData(newData, width, height);
+                ctx.putImageData(newImageData, 0, 0);
+                worker.terminate();
+                resolve();
+            };
+
+            worker.postMessage({
+                data,
+                width,
+                height,
+                startX,
+                startY,
+                targetR: targetColorRGB.r,
+                targetG: targetColorRGB.g,
+                targetB: targetColorRGB.b
+            }, [data.buffer]);
+        });
     }
 
     private static hexToRgb(hex: string) {

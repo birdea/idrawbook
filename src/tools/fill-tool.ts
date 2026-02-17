@@ -5,7 +5,7 @@ import type { Point } from './types';
 import type { Page } from '../canvas/types';
 
 export class FillTool extends BaseTool {
-    onDown(e: PointerEvent, worldPos: Point, targetPage: Page | null): void {
+    async onDown(e: PointerEvent, worldPos: Point, targetPage: Page | null): Promise<void> {
         if (!targetPage) return;
 
         let pressure = e.pressure;
@@ -17,10 +17,10 @@ export class FillTool extends BaseTool {
             pressure
         };
 
-        ToolUtils.floodFill(targetPage.ctx, localPoint, this.context.config.color);
+        await ToolUtils.floodFill(targetPage.ctx, localPoint, this.context.config.color);
         const action = new FillAction(localPoint, this.context.config, targetPage.id);
-        this.context.historyManager.push(action);
-        this.context.render();
+        this.context.pushAction(action);
+        await this.context.render();
         this.context.onUpdateCallback?.(targetPage.id);
     }
 

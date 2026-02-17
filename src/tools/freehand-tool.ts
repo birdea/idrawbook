@@ -81,7 +81,7 @@ export class FreehandTool extends BaseTool {
                 this.context.currentTool,
                 targetPage.id
             );
-            this.context.historyManager.push(action);
+            this.context.pushAction(action);
             this.context.onUpdateCallback?.(targetPage.id);
         }
     }

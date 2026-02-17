@@ -137,34 +137,71 @@ export class CanvasManager implements ICanvasContext {
         this.addPage(pageWidth, pageHeight);
     }
 
-    public undo() {
+    public async undo() {
         const actions = this.historyManager.undo();
-        if (actions) this.redraw(actions);
+        if (actions) await this.redraw(actions);
     }
 
-    public redo() {
+    public async redo() {
         const actions = this.historyManager.redo();
-        if (actions) this.redraw(actions);
+        if (actions) await this.redraw(actions);
     }
 
-    public redraw(actions: DrawingAction[]) {
-        this.getPages().forEach(page => {
-            page.ctx.fillStyle = 'white';
-            page.ctx.fillRect(0, 0, page.width, page.height);
-        });
+    public async redraw(actions?: DrawingAction[]) {
+        const targetActions = actions || this.historyManager.getActions();
+        const snapshot = this.historyManager.getLatestSnapshot(targetActions.length);
+        let startIndex = 0;
+
+        if (snapshot) {
+            this.applySnapshot(snapshot.data);
+            startIndex = snapshot.index + 1;
+        } else {
+            this.getPages().forEach(page => {
+                page.ctx.fillStyle = 'white';
+                page.ctx.fillRect(0, 0, page.width, page.height);
+            });
+        }
 
         const editingIndex = this.textTool?.getEditingActionIndex() ?? -1;
 
-        actions.forEach((action, index) => {
-            if (index === editingIndex) return;
+        for (let index = startIndex; index < targetActions.length; index++) {
+            const action = targetActions[index];
+            if (index === editingIndex) continue;
 
             if (action.pageId) {
                 const p = this.pageManager.get(action.pageId);
-                if (p) action.draw(p.ctx);
+                if (p) await action.draw(p.ctx);
             }
-        });
+        }
         this.render();
         this.onUpdateCallback?.();
+    }
+
+    public pushAction(action: DrawingAction) {
+        this.historyManager.push(action);
+        if (this.historyManager.getActions().length % 50 === 0) {
+            this.historyManager.addSnapshot(this.takeSnapshot());
+        }
+    }
+
+    private takeSnapshot(): Map<string, ImageData> {
+        const snapshot = new Map<string, ImageData>();
+        this.getPages().forEach(page => {
+            snapshot.set(page.id, page.ctx.getImageData(0, 0, page.width, page.height));
+        });
+        return snapshot;
+    }
+
+    private applySnapshot(snapshot: Map<string, ImageData>) {
+        this.getPages().forEach(page => {
+            const data = snapshot.get(page.id);
+            if (data) {
+                page.ctx.putImageData(data, 0, 0);
+            } else {
+                page.ctx.fillStyle = 'white';
+                page.ctx.fillRect(0, 0, page.width, page.height);
+            }
+        });
     }
 
     public setTool(tool: DrawingTool) {

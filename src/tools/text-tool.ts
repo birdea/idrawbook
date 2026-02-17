@@ -197,78 +197,18 @@ export class TextTool extends BaseTool {
             // Logic moved from CanvasManager.handleTextToolAction
             if (this.editingActionIndex >= 0) {
                 this.context.historyManager.replaceAction(this.editingActionIndex, action);
-                // Need to redraw since we removed old action visually (by overlaying) 
-                // actually overlay is on top, old action is still in buffer until this point.
-                // CanvasManager.redraw() handles clearing the buffer and redrawing all.
             } else {
-                this.context.historyManager.push(action);
+                this.context.pushAction(action);
             }
         } else if (this.editingActionIndex >= 0) {
             this.context.historyManager.removeAction(this.editingActionIndex);
         }
 
-        // Redraw to reflect changes (committed text or removed text)
         this.cleanup(); // Sets isEditing false
-
-        // We need to trigger a redraw. Tools usually manage their rendering or context.render().
-        // But removing/replacing history requires full redraw.
-        // context.historyManager doesn't trigger redraw.
-        // CanvasManager has 'redraw(actions)'.
-        // But we handle this via context. 
-        // We need a way to request full redraw from context.
-        // context.render() usually just draws current state.
-        // CanvasManager.redraw() clears pages and draws history.
-        // We need that functionality.
-
-        // context.onUpdateCallback is usually for specific page update or generic update.
-        // But we need to RE-RENDER history to canvas.
-
-        // Currently TextTool was initialized with a 'redraw' callback.
-        // I can add 'redraw()' method to ICanvasContext. or perform it manually.
-
-        // To perform manually:
-        // context.getPages().forEach(p => clear(p));
-        // context.historyManager.getActions().forEach(a => a.draw(p));
-        // context.render();
-
-        // Assuming CanvasManager implements redraw logic in its onUpdateCallback? 
-        // No, onUpdateCallback is passed to PageManager.
-
-        // Let's add redraw() to ICanvasContext to be safe, or just implement it here?
-        // Implementing here replicates logic.
-        // CanvasManager.redraw() is public.
-        // But context is ICanvasContext.
-        // (this.context as any).redraw(...) might work if I verify type, but it's dirty.
-
-        // Better: implement manual redraw here properly.
-        this.redrawPages();
+        this.context.redraw();
     }
 
     // ... Helper to redraw everything ...
-    private redrawPages() {
-        // Clear all pages
-        this.context.getPages().forEach(page => {
-            page.ctx.fillStyle = 'white';
-            page.ctx.fillRect(0, 0, page.width, page.height);
-        });
-
-        const actions = this.context.historyManager.getActions();
-        // const editingIndex = this.editingActionIndex; // Should be -1 after cleanup, but we called cleanup?
-        // If cleanup() called, editingIndex is -1.
-        // Wait, commitText -> calls this.cleanup() at the end.
-        // So editingIndex IS -1. So we draw all actions. 
-        // Correct.
-
-        actions.forEach(action => {
-            if (action.pageId) {
-                const p = this.context.getPages().get(action.pageId);
-                if (p) action.draw(p.ctx);
-            }
-        });
-
-        this.context.render();
-        this.context.onUpdateCallback?.();
-    }
 
     public cancelEditing(): void {
         this.cleanup();

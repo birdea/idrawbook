@@ -6,5 +6,5 @@ export interface DrawingAction {
     type: ActionType;
     config: ToolConfig;
     pageId: string;
-    draw(ctx: CanvasRenderingContext2D): void;
+    draw(ctx: CanvasRenderingContext2D): void | Promise<void>;
 }
