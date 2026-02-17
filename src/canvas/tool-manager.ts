@@ -1,6 +1,6 @@
 import type { ICanvasContext } from './types';
 import type { DrawingTool } from '../tools/types';
-import type { ITool } from '../tools/i-tool';
+import type { ITool } from '../tools/itool';
 import { FreehandTool } from '../tools/freehand-tool';
 import { ShapeTool } from '../tools/shape-tool';
 import { FillTool } from '../tools/fill-tool';

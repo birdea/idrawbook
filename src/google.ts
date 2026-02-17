@@ -21,7 +21,6 @@ export class GoogleService {
         const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
         const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
         if (!clientId || !apiKey) {
-            console.warn('Google API credentials not configured. Set VITE_GOOGLE_CLIENT_ID and VITE_GOOGLE_API_KEY in your .env file.');
         }
         this.clientId = clientId ?? '';
         this.apiKey = apiKey ?? '';
@@ -52,16 +51,13 @@ export class GoogleService {
                     clearInterval(checkGapi);
                 } else if (attempts >= maxAttempts) {
                     clearInterval(checkGapi);
-                    console.warn('Google API (gapi) failed to load after 30s');
                 }
             }, 100);
         }
     }
 
     public login() {
-        console.log('Login requested...');
         if (typeof google === 'undefined') {
-            console.error('Google GSI script not loaded');
             showToast('Google identity services not loaded yet. Please try again in a moment.');
             return;
         }
@@ -71,20 +67,16 @@ export class GoogleService {
                 client_id: this.clientId,
                 scope: 'https://www.googleapis.com/auth/drive.file email profile',
                 callback: (response: any) => {
-                    console.log('Auth response received:', response);
                     if (response.access_token) {
                         this.accessToken = response.access_token;
                         this.fetchUserInfo();
                     } else if (response.error) {
-                        console.error('Auth error:', response.error);
                         showToast(`Login failed: ${response.error}`);
                     }
                 },
             });
-            console.log('Requesting access token...');
             client.requestAccessToken();
         } catch (err) {
-            console.error('Error during initTokenClient or requestAccessToken:', err);
             showToast('Failed to initialize Google login. Please check if your Client ID is correct.');
         }
     }
@@ -104,7 +96,6 @@ export class GoogleService {
             };
             this.onStateChange(this.user);
         } catch (err) {
-            console.error('Error fetching user info:', err);
             this.accessToken = null;
             this.user = null;
             this.onStateChange(null);
@@ -154,12 +145,10 @@ export class GoogleService {
                 picker.setVisible(true);
             });
         } catch (err) {
-            console.error('Error creating picker:', err);
             showToast('Failed to open Google Picker. Please check your browser console.');
             return null;
         }
     }
-
 
     public async uploadToDrive(blob: Blob, filename: string, mimeType: string, folderId?: string): Promise<boolean> {
         if (!this.accessToken) {
@@ -211,12 +200,10 @@ export class GoogleService {
                 return true;
             } else {
                 const error = await resp.json();
-                console.error('Drive upload failed:', error);
                 showToast(`Failed to save to Google Drive: ${error.error?.message || 'Unknown error'}`);
                 return false;
             }
         } catch (err) {
-            console.error('Error uploading to Drive:', err);
             showToast('An error occurred while uploading to Google Drive.');
             return false;
         }
