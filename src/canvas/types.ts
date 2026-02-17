@@ -15,6 +15,8 @@ import type { HistoryManager } from '../history';
 import type { TextTool } from '../tools/text-tool';
 import type { ToolManager } from './tool-manager';
 
+import type { DrawingAction } from '../actions/types';
+
 export interface ICanvasContext {
     canvas: HTMLCanvasElement;
     container: HTMLElement;
@@ -46,6 +48,8 @@ export interface ICanvasContext {
 
     // Methods
     render(): void;
+    redraw(): Promise<void>;
+    pushAction(action: DrawingAction): void;
     onUpdateCallback: ((pageId?: string) => void) | null;
 
     screenToWorld(x: number, y: number): Point;

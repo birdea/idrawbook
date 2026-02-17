@@ -8,6 +8,7 @@ import { APP_CONFIG } from './config';
 export class HistoryManager {
     private undoStack: DrawingAction[] = [];
     private redoStack: DrawingAction[] = [];
+    private snapshots: { index: number, data: any }[] = [];
     private maxHistory: number = APP_CONFIG.HISTORY_LIMIT;
 
     constructor(initialLimit: number = APP_CONFIG.HISTORY_LIMIT) {
@@ -17,7 +18,12 @@ export class HistoryManager {
     public setLimit(limit: number) {
         this.maxHistory = limit;
         if (this.undoStack.length > this.maxHistory) {
-            this.undoStack = this.undoStack.slice(this.undoStack.length - this.maxHistory);
+            const shiftCount = this.undoStack.length - this.maxHistory;
+            this.undoStack = this.undoStack.slice(shiftCount);
+            // Prune snapshots that are now before the start of the stack
+            this.snapshots = this.snapshots
+                .map(s => ({ ...s, index: s.index - shiftCount }))
+                .filter(s => s.index >= 0);
         }
     }
 
@@ -25,6 +31,10 @@ export class HistoryManager {
         this.undoStack.push(action);
         if (this.undoStack.length > this.maxHistory) {
             this.undoStack.shift();
+            // Offset existing snapshots
+            this.snapshots = this.snapshots
+                .map(s => ({ ...s, index: s.index - 1 }))
+                .filter(s => s.index >= 0);
         }
         this.redoStack = []; // Clear redo on new action
     }
@@ -48,6 +58,8 @@ export class HistoryManager {
         if (index >= 0 && index < this.undoStack.length) {
             this.undoStack[index] = newAction;
             this.redoStack = [];
+            // Invalidate snapshots after this modification
+            this.snapshots = this.snapshots.filter(s => s.index < index);
         }
     }
 
@@ -56,6 +68,8 @@ export class HistoryManager {
         if (index >= 0 && index < this.undoStack.length) {
             this.undoStack.splice(index, 1);
             this.redoStack = [];
+            // Invalidate snapshots after this modification
+            this.snapshots = this.snapshots.filter(s => s.index < index);
         }
     }
 
@@ -74,5 +88,27 @@ export class HistoryManager {
     public clear() {
         this.undoStack = [];
         this.redoStack = [];
+        this.snapshots = [];
+    }
+
+    public addSnapshot(data: any) {
+        this.snapshots.push({
+            index: this.undoStack.length - 1,
+            data
+        });
+    }
+
+    public getLatestSnapshot(actionCount: number): { index: number, data: any } | null {
+        // Find latest snapshot that covers at most actionCount actions
+        // Snapshot index 19 means it covers actions 0 to 19 (20 actions)
+        // So we need index <= actionCount - 1
+        const targetIndex = actionCount - 1;
+        let latest: { index: number, data: any } | null = null;
+        for (const s of this.snapshots) {
+            if (s.index <= targetIndex && (latest === null || s.index > latest.index)) {
+                latest = s;
+            }
+        }
+        return latest;
     }
 }

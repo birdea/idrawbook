@@ -132,7 +132,7 @@ describe('Action Classes', () => {
         vi.spyOn(ToolUtils, 'drawLine').mockImplementation(() => { });
         vi.spyOn(ToolUtils, 'drawRect').mockImplementation(() => { });
         vi.spyOn(ToolUtils, 'drawCircle').mockImplementation(() => { });
-        vi.spyOn(ToolUtils, 'floodFill').mockImplementation(() => { });
+        vi.spyOn(ToolUtils, 'floodFill').mockImplementation(() => Promise.resolve());
     });
 
     afterEach(() => {
@@ -163,9 +163,9 @@ describe('Action Classes', () => {
         expect(ToolUtils.drawCircle).toHaveBeenCalled();
     });
 
-    it('FillAction should call ToolUtils.floodFill', () => {
+    it('FillAction should call ToolUtils.floodFill', async () => {
         const action = new FillAction(mockPoint, mockConfig, 'page-1');
-        action.draw(mockCtx);
+        await action.draw(mockCtx);
         expect(ToolUtils.floodFill).toHaveBeenCalled();
     });
 });

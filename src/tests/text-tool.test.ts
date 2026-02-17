@@ -36,6 +36,8 @@ describe('TextTool', () => {
             historyManager: historyManagerMock,
             getPages: () => new Map(),
             render: vi.fn(),
+            redraw: vi.fn().mockResolvedValue(undefined),
+            pushAction: vi.fn().mockImplementation((action) => historyManagerMock.push(action)),
             onUpdateCallback: vi.fn(),
             screenToWorld: (x: number, y: number) => ({ x, y }), // Simplified identity
         } as unknown as ICanvasContext;

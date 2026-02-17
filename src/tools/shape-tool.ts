@@ -99,7 +99,7 @@ export class ShapeTool extends BaseTool {
         }
 
         if (action) {
-            this.context.historyManager.push(action);
+            this.context.pushAction(action);
             this.context.onUpdateCallback?.(targetPage.id);
         }
         this.context.render();

@@ -12,6 +12,21 @@ describe('CanvasRenderer', () => {
     const viewHeight = 800;
 
     beforeEach(() => {
+        // Setup Media Query mock to avoid errors
+        Object.defineProperty(window, 'matchMedia', {
+            writable: true,
+            value: vi.fn().mockImplementation(query => ({
+                matches: false,
+                media: query,
+                onchange: null,
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+                addEventListener: vi.fn(),
+                removeEventListener: vi.fn(),
+                dispatchEvent: vi.fn(),
+            })),
+        });
+
         // Mock Canvas and Context
         canvas = { width: viewWidth, height: viewHeight } as HTMLCanvasElement;
 
@@ -28,21 +43,6 @@ describe('CanvasRenderer', () => {
 
         renderer = new CanvasRenderer(ctx, canvas);
         pages = new Map();
-
-        // Setup Media Query mock to avoid errors
-        Object.defineProperty(window, 'matchMedia', {
-            writable: true,
-            value: vi.fn().mockImplementation(query => ({
-                matches: false,
-                media: query,
-                onchange: null,
-                addListener: vi.fn(),
-                removeListener: vi.fn(),
-                addEventListener: vi.fn(),
-                removeEventListener: vi.fn(),
-                dispatchEvent: vi.fn(),
-            })),
-        });
     });
 
     it('should render page inside viewport', () => {

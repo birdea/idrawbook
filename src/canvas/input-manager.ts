@@ -58,7 +58,7 @@ export class InputManager {
         return null;
     }
 
-    private handlePointerDown(e: PointerEvent) {
+    private async handlePointerDown(e: PointerEvent) {
         e.preventDefault();
         this.context.canvas.setPointerCapture(e.pointerId);
         const rect = this.context.canvas.getBoundingClientRect();
@@ -107,10 +107,10 @@ export class InputManager {
         }
 
         // Delegate to tool
-        this.context.toolManager.getCurrentTool().onDown(e, worldPos, targetPage);
+        await this.context.toolManager.getCurrentTool().onDown(e, worldPos, targetPage);
     }
 
-    private handlePointerMove(e: PointerEvent) {
+    private async handlePointerMove(e: PointerEvent) {
         const rect = this.context.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -142,7 +142,7 @@ export class InputManager {
         // Update lastMousePos before calling tool? Or after?
         // Some tools might use delta calculation if they tracked it, but they use e.movementX/Y usually or internal state.
 
-        this.context.toolManager.getCurrentTool().onMove(e, worldPos, targetPage);
+        await this.context.toolManager.getCurrentTool().onMove(e, worldPos, targetPage);
 
         this.lastMousePos = { x, y };
     }
@@ -176,7 +176,7 @@ export class InputManager {
         this.lastPinchCenter = currentCenter;
     }
 
-    private handlePointerUp(e: PointerEvent) {
+    private async handlePointerUp(e: PointerEvent) {
         e.preventDefault();
         this.activePointers.delete(e.pointerId);
 
@@ -199,7 +199,7 @@ export class InputManager {
         const worldPos = this.context.screenToWorld(x, y);
         const targetPage = this.findTargetPage(worldPos);
 
-        this.context.toolManager.getCurrentTool().onUp(e, worldPos, targetPage);
+        await this.context.toolManager.getCurrentTool().onUp(e, worldPos, targetPage);
     }
 
     public updateCursor() {
