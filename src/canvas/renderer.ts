@@ -1,5 +1,6 @@
 import type { Page } from './types';
 import type { Point } from '../tools/types';
+import { APP_CONFIG } from '../config';
 
 export class CanvasRenderer {
     private ctx: CanvasRenderingContext2D;
@@ -23,7 +24,7 @@ export class CanvasRenderer {
 
         // Calculate visible world bounds for culling
         // Add a small margin to prevent artifacts at edges
-        const margin = 50;
+        const margin = APP_CONFIG.RENDERER_MARGIN;
         const viewportLeft = -offset.x / scale - margin;
         const viewportTop = -offset.y / scale - margin;
         const viewportRight = (this.canvas.width - offset.x) / scale + margin;

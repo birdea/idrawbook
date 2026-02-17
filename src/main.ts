@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let toolStateManager: ToolStateManager;
   let googleService: GoogleService;
 
-  const paletteSettings = { count: 20, columns: 10 };
+  const paletteSettings = { ...APP_CONFIG.PALETTE_SETTINGS };
 
   const updateHistoryButtons = () => {
     const undoBtn = document.getElementById('main-undo-btn') as HTMLButtonElement;
