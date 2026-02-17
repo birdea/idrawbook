@@ -163,10 +163,11 @@ describe('UI Tests', () => {
             expect(updateIndicator).toHaveBeenCalled();
         });
 
-        it('should update active swatch', () => {
+        it('should update active swatch and ensure uniqueness', () => {
             document.body.innerHTML = `
                 <div class="color-swatch" data-color="#ff0000"></div>
                 <div class="color-swatch" data-color="#00ff00"></div>
+                <div class="color-swatch" data-color="#0000ff"></div>
             `;
 
             updateActiveSwatch('#00ff00');
@@ -174,6 +175,12 @@ describe('UI Tests', () => {
             const swatches = document.querySelectorAll('.color-swatch');
             expect(swatches[0].classList.contains('active')).toBe(false);
             expect(swatches[1].classList.contains('active')).toBe(true);
+            expect(swatches[2].classList.contains('active')).toBe(false);
+
+            // Update again
+            updateActiveSwatch('#0000ff');
+            expect(swatches[1].classList.contains('active')).toBe(false);
+            expect(swatches[2].classList.contains('active')).toBe(true);
         });
     });
 
@@ -192,6 +199,7 @@ describe('UI Tests', () => {
                 <input id="color-picker" />
                 <div class="tool-btn" data-tool="pencil"></div>
                 <div class="tool-btn" data-tool="brush"></div>
+                <div class="tool-btn" data-tool="hand"></div>
                 <div id="global-tool-indicator">
                     <div class="tool-indicator-color"></div>
                     <div class="tool-indicator-size"></div>
@@ -202,7 +210,6 @@ describe('UI Tests', () => {
         });
 
         it('should initialize and cache DOM', () => {
-            // Logic in constructor
             expect((manager as any).domCache.sizeInput).not.toBeNull();
         });
 
@@ -213,27 +220,66 @@ describe('UI Tests', () => {
             expect(mockCanvasManager.setTool).toHaveBeenCalledWith('brush');
             expect(mockCanvasManager.setConfig).toHaveBeenCalled();
 
-            // UI Update
             const brushBtn = document.querySelector('.tool-btn[data-tool="brush"]');
             expect(brushBtn?.classList.contains('active')).toBe(true);
 
             const sizeInput = document.getElementById('stroke-size') as HTMLInputElement;
-            expect(sizeInput.value).toBe('10'); // Brush default
+            expect(sizeInput.value).toBe('10');
         });
 
-        it('should toggle hand tool', () => {
-            manager.switchTool('pencil');
+        it('should toggle hand tool with memory', () => {
+            manager.switchTool('brush');
+            expect(manager.getCurrentTool()).toBe('brush');
+
             manager.toggleHandTool(); // to hand
             expect(manager.getCurrentTool()).toBe('hand');
+            expect(mockCanvasManager.setTool).toHaveBeenCalledWith('hand');
 
-            manager.toggleHandTool(); // back to pencil
-            expect(manager.getCurrentTool()).toBe('pencil');
+            manager.toggleHandTool(); // back to brush
+            expect(manager.getCurrentTool()).toBe('brush');
+            expect(mockCanvasManager.setTool).toHaveBeenCalledWith('brush');
         });
 
         it('should get tool state', () => {
             const state = manager.getToolState('pencil');
             expect(state).toBeDefined();
             expect(state?.size).toBe(5);
+        });
+
+        it('should update current state properties', () => {
+            manager.switchTool('pencil');
+
+            manager.updateCurrentState({ size: 20, opacity: 50, color: '#abcdef' });
+
+            const state = manager.getToolState('pencil');
+            expect(state?.size).toBe(20);
+            expect(state?.opacity).toBe(50);
+            expect(state?.color).toBe('#abcdef');
+
+            expect(mockCanvasManager.setConfig).toHaveBeenCalledWith(expect.objectContaining({
+                size: 20,
+                opacity: 50,
+                color: '#abcdef'
+            }));
+
+            // Check UI updates
+            const indicatorColor = document.querySelector('.tool-indicator-color') as HTMLElement;
+            expect(indicatorColor.style.backgroundColor).toBe('rgb(171, 205, 239)');
+
+            const indicatorSize = document.querySelector('.tool-indicator-size') as HTMLElement;
+            expect(indicatorSize.textContent).toBe('20');
+        });
+
+        it('should handle fill tool special indicator', () => {
+            // Mock tool state for fill if not present in default class init
+            // The real class has fill.
+            manager.switchTool('fill');
+
+            const indicatorSize = document.querySelector('.tool-indicator-size') as HTMLElement;
+            expect(indicatorSize.style.display).toBe('none');
+
+            manager.switchTool('pencil');
+            expect(indicatorSize.style.display).toBe('block');
         });
     });
 });

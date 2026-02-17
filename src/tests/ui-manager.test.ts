@@ -78,8 +78,8 @@ describe('UIManager', () => {
             <div id="menu-toggle-right"></div>
             <div class="tool-panel" style="display: none;"></div>
             <div class="properties-panel" style="display: none;"></div>
-            <div id="section-stroke"></div>
-            <div id="section-color"></div>
+            <div id="section-stroke" class="collapsed"></div>
+            <div id="section-color" class="collapsed"></div>
             
             <button class="tool-btn" data-tool="pencil"></button>
             <button class="tool-btn" data-tool="hand"></button>
@@ -111,10 +111,6 @@ describe('UIManager', () => {
 
     it('should handle resize', () => {
         window.dispatchEvent(new Event('resize'));
-        // Expect updateOrientationIcons to be called (mocked)
-        // Since we mocked dependencies, checking call is hard unless we spy on the import.
-        // But the mock factory returns a vi.fn().
-        // We mocked '../ui/icon-injector' whole module.
     });
 
     it('should handle zoom buttons', () => {
@@ -124,13 +120,15 @@ describe('UIManager', () => {
         expect(canvasManagerMock.zoomOut).toHaveBeenCalled();
     });
 
-    it('should handle shortcuts', () => {
+    it('should handle all keyboard shortcuts', () => {
+        // Undo/Redo
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true }));
         expect(canvasManagerMock.undo).toHaveBeenCalled();
 
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, shiftKey: true }));
         expect(canvasManagerMock.redo).toHaveBeenCalled();
 
+        // Tools
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'h', ctrlKey: true }));
         expect(toolStateManagerMock.toggleHandTool).toHaveBeenCalled();
 
@@ -139,6 +137,26 @@ describe('UIManager', () => {
 
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', ctrlKey: true }));
         expect(toolStateManagerMock.switchTool).toHaveBeenCalledWith('brush');
+
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', ctrlKey: true }));
+        expect(toolStateManagerMock.switchTool).toHaveBeenCalledWith('eraser');
+
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true }));
+        expect(toolStateManagerMock.switchTool).toHaveBeenCalledWith('fill');
+
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 't', ctrlKey: true }));
+        expect(toolStateManagerMock.switchTool).toHaveBeenCalledWith('text');
+
+        // Panels
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'l', ctrlKey: true }));
+        // Can't easily check internal state change without mocking togglePanel or checking side effects
+        // But we can check if it calls updateOrientationIcons which is mocked
+        // Or check element style directly
+        const toolPanel = document.querySelector('.tool-panel') as HTMLElement;
+        expect(toolPanel.style.display).not.toBe('none'); // Assuming it toggles to flex
+
+        // Reset
+        toolPanel.style.display = 'none';
     });
 
     it('should handle tool buttons', () => {
@@ -174,6 +192,17 @@ describe('UIManager', () => {
         expect(panel.style.display).toBe('none');
     });
 
+    it('should expand properties panel when forcing expand', () => {
+        const propsPanel = document.querySelector('.properties-panel') as HTMLElement;
+        propsPanel.style.display = 'none';
+
+        uiManager.togglePanel('right', true);
+
+        expect(propsPanel.style.display).toBe('flex');
+        expect(document.getElementById('section-stroke')?.classList.contains('collapsed')).toBe(false);
+        expect(document.getElementById('section-color')?.classList.contains('collapsed')).toBe(false);
+    });
+
     it('should handle prop header toggle', () => {
         const header = document.querySelector('.prop-header') as HTMLElement;
         header.click();
@@ -184,5 +213,15 @@ describe('UIManager', () => {
     it('should handle custom color event', () => {
         window.dispatchEvent(new CustomEvent('colorChanged', { detail: { color: '#123456' } }));
         expect(toolStateManagerMock.updateCurrentState).toHaveBeenCalledWith({ color: '#123456' });
+    });
+
+    it('should setup menu item interactions', () => {
+        const menuItem = document.querySelector('.menu-item') as HTMLElement;
+        menuItem.click();
+        expect(menuItem.classList.contains('active')).toBe(true);
+
+        // Click elsewhere
+        document.body.click();
+        expect(menuItem.classList.contains('active')).toBe(false);
     });
 });
