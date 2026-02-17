@@ -425,7 +425,7 @@ export class TextTool extends BaseTool {
         this.autoResizeTextarea();
     }
 
-    // ... Options ...
+    // --- Options Popup Management ---
     private toggleOptionsPopup(): void {
         if (this.optionsVisible) {
             this.hideOptionsPopup();
