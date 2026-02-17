@@ -11,7 +11,7 @@ export class ToolUtils {
         ToolUtils.setupContext(ctx, tool, config);
 
         if (points.length === 1) {
-            // Draw a dot if it's just one point
+            // Draw a dot if it's just one poin
             const p = points[0];
             ctx.beginPath();
             ctx.arc(p.x, p.y, config.size / 2, 0, Math.PI * 2);
@@ -27,7 +27,7 @@ export class ToolUtils {
             }
         }
 
-        // Reset
+        // Rese
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1.0;
         ctx.globalCompositeOperation = 'source-over';

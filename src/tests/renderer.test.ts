@@ -27,7 +27,7 @@ describe('CanvasRenderer', () => {
             })),
         });
 
-        // Mock Canvas and Context
+        // Mock Canvas and Contex
         canvas = { width: viewWidth, height: viewHeight } as HTMLCanvasElement;
 
         ctx = {
@@ -103,7 +103,7 @@ describe('CanvasRenderer', () => {
         renderer.render(pages, 0.5, { x: 0, y: 0 }, null);
         expect(ctx.drawImage).toHaveBeenCalledTimes(1);
 
-        // Reset
+        // Rese
         (ctx.drawImage as any).mockClear();
 
         // Case 2: Scale 2. Offset 0,0.
@@ -131,7 +131,7 @@ describe('CanvasRenderer', () => {
         renderer.render(pages, 1, { x: -2000, y: 0 }, null);
         expect(ctx.drawImage).not.toHaveBeenCalled();
 
-        // Reset
+        // Rese
         (ctx.drawImage as any).mockClear();
 
         // Pan left so page is centered

@@ -101,7 +101,7 @@ export class InputManager {
             // But usually it's good to deselect page or keep last?
             // Original logic: if !targetPage, setActivePageId(null).
             if (this.context.currentTool !== 'hand') {
-                // Keep null if drawing on void? 
+                // Keep null if drawing on void?
                 // Or just let tool handle it.
             }
         }
@@ -203,7 +203,7 @@ export class InputManager {
     }
 
     public updateCursor() {
-        // Delegate cursor update to current tool if needed, or reset to tool's default
+        // Delegate cursor update to current tool if needed, or reset to tool's defaul
         // The ToolManager handled tool activation which sets cursor.
         // But if we were panning (override cursor), we need to restore it.
         const tool = this.context.toolManager.getCurrentTool();
