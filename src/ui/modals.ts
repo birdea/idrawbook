@@ -8,19 +8,21 @@ export class ModalManager {
     private selectedFolderId: string = '';
     private canvasManager: CanvasManager;
     private googleService: GoogleService;
+    private openMode: 'book' | 'page' = 'book';
 
     constructor(canvasManager: CanvasManager, googleService: GoogleService) {
         injectModals();
         this.canvasManager = canvasManager;
         this.googleService = googleService;
         this.setupListeners();
+        this.setupOpenBookListeners();
     }
 
     private setupListeners() {
         // New Book Modal
         const newBookModal = document.getElementById('new-book-modal');
         const closeNewBookModal = () => newBookModal?.classList.add('hidden');
-        document.getElementById('menu-new')?.addEventListener('click', () => newBookModal?.classList.remove('hidden'));
+        document.getElementById('menu-new-book')?.addEventListener('click', () => newBookModal?.classList.remove('hidden'));
         document.getElementById('new-book-close')?.addEventListener('click', closeNewBookModal);
         document.getElementById('new-book-cancel-btn')?.addEventListener('click', closeNewBookModal);
         document.getElementById('new-book-create-btn')?.addEventListener('click', () => {
@@ -63,7 +65,8 @@ export class ModalManager {
         const btnSaveDrive = document.getElementById('btn-save-drive') as HTMLButtonElement;
 
         document.getElementById('save-modal-close')?.addEventListener('click', closeSaveModal);
-        document.getElementById('menu-save')?.addEventListener('click', () => {
+
+        const openSaveModal = () => {
             if (saveFilenameInput && (!saveFilenameInput.value || saveFilenameInput.value === 'Untitled')) {
                 const now = new Date();
                 const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -71,7 +74,10 @@ export class ModalManager {
                 saveFilenameInput.value = `iDrawBook_${dateStr}_${timeStr}`;
             }
             saveModal?.classList.remove('hidden');
-        });
+        };
+
+        document.getElementById('menu-save-book')?.addEventListener('click', openSaveModal);
+        document.getElementById('menu-save-page')?.addEventListener('click', openSaveModal);
 
         const getSaveParams = () => {
             const filename = (saveFilenameInput.value || 'Untitled') + (saveExtLabel?.textContent || '.png');
@@ -156,14 +162,17 @@ export class ModalManager {
         // New Page Modal
         const newPageModal = document.getElementById('new-page-modal');
         const closeNewPageModal = () => newPageModal?.classList.add('hidden');
-        document.getElementById('add-page-btn')?.addEventListener('click', () => {
+        const openNewPageModal = () => {
             newPageModal?.classList.remove('hidden');
             const size = this.canvasManager.getPixelSize();
             const wInput = document.getElementById('new-page-width') as HTMLInputElement;
             const hInput = document.getElementById('new-page-height') as HTMLInputElement;
             if (wInput) wInput.value = (size.width || 1024).toString();
             if (hInput) hInput.value = (size.height || 1024).toString();
-        });
+        };
+
+        document.getElementById('add-page-btn')?.addEventListener('click', openNewPageModal);
+        document.getElementById('menu-new-page')?.addEventListener('click', openNewPageModal);
         document.getElementById('new-page-close')?.addEventListener('click', closeNewPageModal);
         document.getElementById('new-page-cancel-btn')?.addEventListener('click', closeNewPageModal);
         document.getElementById('new-page-create-btn')?.addEventListener('click', () => {
@@ -173,6 +182,75 @@ export class ModalManager {
             const height = parseInt(hInput.value) || 1024;
             this.canvasManager.addPage(Math.min(Math.max(width, 100), 5000), Math.min(Math.max(height, 100), 5000));
             closeNewPageModal();
+        });
+    }
+
+    private setupOpenBookListeners() {
+        const openBookModal = document.getElementById('open-book-modal');
+        const closeOpenBookModal = () => openBookModal?.classList.add('hidden');
+
+        document.getElementById('menu-open-book')?.addEventListener('click', () => {
+            this.openMode = 'book';
+            const title = openBookModal?.querySelector('h3');
+            if (title) title.textContent = 'Open Book';
+            openBookModal?.classList.remove('hidden');
+        });
+
+        document.getElementById('menu-open-page')?.addEventListener('click', () => {
+            this.openMode = 'page';
+            const title = openBookModal?.querySelector('h3');
+            if (title) title.textContent = 'Open Page';
+            openBookModal?.classList.remove('hidden');
+        });
+
+        document.getElementById('open-book-close')?.addEventListener('click', closeOpenBookModal);
+        document.getElementById('open-book-cancel-btn')?.addEventListener('click', closeOpenBookModal);
+
+        // Local File
+        const localInput = document.getElementById('local-file-input') as HTMLInputElement;
+        const btnLocal = document.getElementById('btn-open-local');
+
+        btnLocal?.addEventListener('click', () => {
+            localInput?.click();
+        });
+
+        localInput?.addEventListener('change', async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+                const isBook = this.openMode === 'book';
+                const confirmMsg = isBook
+                    ? 'Open this file? Unsaved changes will be lost.'
+                    : 'Add this file as a new page?';
+
+                if (confirm(confirmMsg)) {
+                    closeOpenBookModal();
+                    await this.canvasManager.loadFromBlob(file, isBook); // Pass shouldClear based on mode
+                    // Reset input so change event triggers again for same file if needed
+                    localInput.value = '';
+                }
+            }
+        });
+
+        // Google Drive
+        const btnDrive = document.getElementById('btn-open-drive');
+        btnDrive?.addEventListener('click', async () => {
+            const fileId = await this.googleService.showFilePicker();
+            if (fileId) {
+                const isBook = this.openMode === 'book';
+                const confirmMsg = isBook
+                    ? 'Open this file from Drive? Unsaved changes will be lost.'
+                    : 'Add this file from Drive as a new page?';
+
+                if (confirm(confirmMsg)) {
+                    closeOpenBookModal();
+                    // Show loading toast?
+                    showToast('Downloading file from Drive...');
+                    const blob = await this.googleService.downloadFile(fileId);
+                    if (blob) {
+                        await this.canvasManager.loadFromBlob(blob, isBook);
+                    }
+                }
+            }
         });
     }
 }

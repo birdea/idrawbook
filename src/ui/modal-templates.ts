@@ -1,5 +1,5 @@
 export const MODAL_TEMPLATES = {
-    save: `
+  save: `
   <div id="save-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -91,12 +91,12 @@ export const MODAL_TEMPLATES = {
     </div>
   </div>
     `,
-    mobileBottomBar: `
+  mobileBottomBar: `
   <div class="mobile-bottom-bar hidden-desktop" id="mobile-bottom-bar">
     <!-- Buttons will be injected dynamically -->
   </div>
     `,
-    mobileGeneric: `
+  mobileGeneric: `
   <div id="mobile-generic-modal" class="modal-overlay hidden">
     <div class="modal-content bottom-sheet">
       <div class="modal-header">
@@ -109,7 +109,7 @@ export const MODAL_TEMPLATES = {
     </div>
   </div>
     `,
-    settings: `
+  settings: `
   <div id="settings-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -142,7 +142,7 @@ export const MODAL_TEMPLATES = {
     </div>
   </div>
     `,
-    newBook: `
+  newBook: `
   <div id="new-book-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -166,7 +166,7 @@ export const MODAL_TEMPLATES = {
     </div>
   </div>
     `,
-    newPage: `
+  newPage: `
   <div id="new-page-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -189,11 +189,39 @@ export const MODAL_TEMPLATES = {
       </div>
     </div>
   </div>
+    `,
+  openBook: `
+  <div id="open-book-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Open Book</h3>
+        <button id="open-book-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="save-actions-grid">
+          <div class="action-block">
+             <h4>Local File</h4>
+             <p style="font-size: 11px; color: var(--apple-text-secondary); margin: 4px 0;">Open JPG, PNG, or PDF from your computer.</p>
+             <button id="btn-open-local" class="btn-primary full-width">Select File</button>
+             <input type="file" id="local-file-input" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+          </div>
+          <div class="action-block">
+             <h4>Google Drive</h4>
+             <p style="font-size: 11px; color: var(--apple-text-secondary); margin: 4px 0;">Open JPG, PNG, or PDF from Google Drive.</p>
+             <button id="btn-open-drive" class="btn-secondary full-width">Select from Drive</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="open-book-cancel-btn" class="btn-text">Cancel</button>
+      </div>
+    </div>
+  </div>
     `
 };
 
 export function injectModals() {
-    Object.values(MODAL_TEMPLATES).forEach(template => {
-        document.body.insertAdjacentHTML('beforeend', template);
-    });
+  Object.values(MODAL_TEMPLATES).forEach(template => {
+    document.body.insertAdjacentHTML('beforeend', template);
+  });
 }
