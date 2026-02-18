@@ -224,4 +224,32 @@ describe('UIManager', () => {
         document.body.click();
         expect(menuItem.classList.contains('active')).toBe(false);
     });
+
+    it('should close menus when clicking dropdown button', () => {
+        const menuItem = document.querySelector('.menu-item') as HTMLElement;
+        menuItem.classList.add('active');
+
+        const dropdownBtn = document.querySelector('.menu-dropdown button') as HTMLElement;
+        dropdownBtn.click();
+
+        expect(menuItem.classList.contains('active')).toBe(false);
+    });
+
+    it('should stop propagation when clicking inside dropdown', () => {
+        const dropdown = document.querySelector('.menu-dropdown') as HTMLElement;
+        const evt = new Event('click', { bubbles: true });
+        const stopSpy = vi.spyOn(evt, 'stopPropagation');
+        dropdown.dispatchEvent(evt);
+        expect(stopSpy).toHaveBeenCalled();
+    });
+
+    it('should toggle right panel on global indicator click', () => {
+        const indicator = document.getElementById('global-tool-indicator');
+        const panel = document.querySelector('.properties-panel') as HTMLElement;
+        panel.style.display = 'none';
+
+        indicator?.click();
+
+        expect(panel.style.display).toBe('flex');
+    });
 });

@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GoogleService } from '../google';
 
+vi.mock('../ui/toast', () => ({
+    showToast: vi.fn(),
+}));
+
 describe('GoogleService', () => {
     let service: GoogleService;
     const onStateChange = vi.fn();
@@ -118,5 +122,81 @@ describe('GoogleService', () => {
         expect((service as any).accessToken).toBeNull();
         expect((service as any).user).toBeNull();
         expect(onStateChange).toHaveBeenCalledWith(null);
+    });
+
+    it('should handle login error callback', async () => {
+        // Override mock for this test
+        (window as any).google.accounts.oauth2.initTokenClient.mockImplementation((config: any) => {
+            return {
+                requestAccessToken: () => {
+                    config.callback({ error: 'access_denied' });
+                }
+            };
+        });
+
+        const { showToast } = await import('../ui/toast');
+
+        service.login();
+        expect(showToast).toHaveBeenCalled();
+    });
+
+    it('should fetch user info successfully', async () => {
+        (service as any).accessToken = 'token';
+        (window.fetch as any).mockResolvedValue({
+            ok: true,
+            json: async () => ({ name: 'Test', email: 'test@example.com', picture: 'pic' })
+        });
+
+        await (service as any).fetchUserInfo();
+
+        expect((service as any).user).toEqual({ name: 'Test', email: 'test@example.com', picture: 'pic' });
+        expect(onStateChange).toHaveBeenCalled();
+    });
+
+    it('should handle fetch user info error', async () => {
+        (service as any).accessToken = 'token';
+        (window.fetch as any).mockRejectedValue(new Error('Network error'));
+
+        await (service as any).fetchUserInfo();
+
+        expect((service as any).accessToken).toBeNull();
+        expect((service as any).user).toBeNull();
+    });
+
+    it('should not show picker if not logged in', async () => {
+        (service as any).accessToken = null;
+        const result = await service.showPicker();
+        expect(result).toBeNull();
+    });
+
+    it('should not show picker if api not loaded', async () => {
+        (service as any).accessToken = 'token';
+        (service as any).pickerApiLoaded = false;
+        const result = await service.showPicker();
+        expect(result).toBeNull();
+    });
+
+    it('should upload to drive with folderId', async () => {
+        (service as any).accessToken = 'token';
+        const blob = new Blob(['test'], { type: 'image/png' });
+        (window.fetch as any).mockResolvedValue({ ok: true, json: async () => ({}) });
+
+        await service.uploadToDrive(blob, 'test.png', 'image/png', 'folder123');
+
+        expect(window.fetch).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                body: expect.any(Blob)
+            })
+        );
+        // We could inspect the body but it's a blob.
+    });
+
+    it('should handle download file error', async () => {
+        (service as any).accessToken = 'token';
+        (window.fetch as any).mockResolvedValue({ ok: false });
+
+        const result = await service.downloadFile('file123');
+        expect(result).toBeNull();
     });
 });

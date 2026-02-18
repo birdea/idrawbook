@@ -319,4 +319,75 @@ export class CanvasManager implements ICanvasContext {
             });
         }
     }
+
+    public async loadFromBlob(blob: Blob, shouldClear: boolean = true) {
+        try {
+            if (blob.type === 'application/pdf') {
+                await this.loadPdf(blob, shouldClear);
+            } else if (blob.type.startsWith('image/')) {
+                await this.loadImage(blob, shouldClear);
+            } else {
+                showToast('Unsupported file type: ' + blob.type);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to open file.');
+        }
+    }
+
+    private async loadImage(blob: Blob, shouldClear: boolean) {
+        const bitmap = await createImageBitmap(blob);
+
+        if (shouldClear) {
+            this.pageManager.clear();
+            this.historyManager.clear();
+        }
+
+        const pageId = this.addPage(bitmap.width, bitmap.height);
+        const page = this.pageManager.get(pageId);
+        if (page) {
+            page.ctx.drawImage(bitmap, 0, 0);
+        }
+        this.render();
+    }
+
+    private async loadPdf(blob: Blob, shouldClear: boolean) {
+        // Dynamic import for pdfjs-dist
+        const pdfjsLib = await import('pdfjs-dist');
+        // Set worker. using standard Vite URL import for assets or node_modules resolution
+        // We use the minified mjs worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+
+        if (shouldClear) {
+            this.pageManager.clear();
+            this.historyManager.clear();
+        }
+
+        const scale = 1.5; // Better quality
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale });
+
+            const pageId = this.addPage(viewport.width, viewport.height);
+            const canvasPage = this.pageManager.get(pageId);
+
+            if (canvasPage) {
+                await page.render({
+                    canvasContext: canvasPage.ctx,
+                    viewport: viewport,
+                    canvas: canvasPage.canvas
+                }).promise;
+            }
+        }
+        // Focus first page
+        if (this.pageManager.getAll().length > 0) {
+            this.focusPage(this.pageManager.getAll()[0].id);
+        }
+        this.render();
+    }
 }

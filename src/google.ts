@@ -163,6 +163,47 @@ export class GoogleService {
         }
     }
 
+    public async showFilePicker(): Promise<string | null> {
+        if (!this.accessToken) {
+            showToast('Your session has expired or you are not logged in. Please login to Google first.');
+            return null;
+        }
+
+        if (!this.pickerApiLoaded) {
+            showToast('Google Picker is still loading. Please try again in a few seconds.');
+            return null;
+        }
+
+        try {
+            return new Promise((resolve) => {
+                const docsView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+                    .setMimeTypes('image/jpeg,image/png,application/pdf')
+                    .setIncludeFolders(true)
+                    .setSelectFolderEnabled(false);
+
+                const pickerBuilder = new google.picker.PickerBuilder()
+                    .addView(docsView)
+                    .setOAuthToken(this.accessToken)
+                    .setDeveloperKey(this.apiKey)
+                    .setOrigin(window.location.origin)
+                    .setCallback((data: any) => {
+                        if (data.action === google.picker.Action.PICKED) {
+                            const file = data.docs[0];
+                            resolve(file.id);
+                        } else if (data.action !== google.picker.Action.LOADED) {
+                            resolve(null);
+                        }
+                    });
+
+                const picker = pickerBuilder.build();
+                picker.setVisible(true);
+            });
+        } catch (err) {
+            showToast('Failed to open Google Picker. Please check your browser console.');
+            return null;
+        }
+    }
+
     public async uploadToDrive(blob: Blob, filename: string, mimeType: string, folderId?: string): Promise<boolean> {
         if (!this.accessToken) {
             showToast('Please login to Google first.');
@@ -219,6 +260,29 @@ export class GoogleService {
         } catch (err) {
             showToast('An error occurred while uploading to Google Drive.');
             return false;
+        }
+    }
+
+    public async downloadFile(fileId: string): Promise<Blob | null> {
+        if (!this.accessToken) {
+            showToast('Please login to Google first.');
+            return null;
+        }
+
+        try {
+            const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                headers: { Authorization: `Bearer ${this.accessToken}` }
+            });
+
+            if (resp.ok) {
+                return await resp.blob();
+            } else {
+                showToast('Failed to download file from Google Drive.');
+                return null;
+            }
+        } catch (err) {
+            showToast('An error occurred while downloading file from Google Drive.');
+            return null;
         }
     }
 

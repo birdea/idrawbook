@@ -111,8 +111,15 @@ export class UIManager {
         document.getElementById('main-undo-btn')?.addEventListener('click', () => this.canvasManager.undo());
         document.getElementById('main-redo-btn')?.addEventListener('click', () => this.canvasManager.redo());
 
-        document.getElementById('menu-delete')?.addEventListener('click', () => {
-            if (confirm('Delete current book?')) this.canvasManager.clear();
+        document.getElementById('menu-close-book')?.addEventListener('click', () => {
+            if (confirm('Close current book? Unsaved changes will be lost.')) this.canvasManager.clear();
+        });
+
+        document.getElementById('menu-close-page')?.addEventListener('click', () => {
+            const activePageId = this.canvasManager.getActivePageId();
+            if (activePageId && confirm('Delete current page?')) {
+                this.canvasManager.removePage(activePageId);
+            }
         });
 
         // Google Authentication
