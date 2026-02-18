@@ -1,0 +1,10 @@
+coverage:
+  status:
+    patch:
+      default:
+        target: 65%      # 이번 수정분은 75%만 넘으면 OK
+        threshold: 5%    # 오차 범위 없이 딱 75% 기준
+    project:
+      default:
+        target: auto     # 전체 프로젝트 수치는 이전 수준 유지
+        threshold: 5%    # 하지만 전체 수치가 5%까지 떨어지는 건 눈감아줌

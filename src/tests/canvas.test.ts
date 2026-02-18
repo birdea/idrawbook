@@ -285,4 +285,83 @@ describe('CanvasManager', () => {
         const blob = await manager.getBlob('png');
         expect(blob).toBeInstanceOf(Blob);
     });
+
+    it('should convert screen to world coordinates', () => {
+        manager.offset = { x: 10, y: 20 };
+        manager.scale = 2;
+        const point = manager.screenToWorld(110, 120);
+        // (110 - 10) / 2 = 50
+        // (120 - 20) / 2 = 50
+        expect(point).toEqual({ x: 50, y: 50 });
+    });
+
+    it('should convert world to screen coordinates', () => {
+        manager.offset = { x: 10, y: 20 };
+        manager.scale = 2;
+        const point = manager.worldToScreen(50, 50);
+        // 50 * 2 + 10 = 110
+        // 50 * 2 + 20 = 120
+        expect(point).toEqual({ x: 110, y: 120 });
+    });
+
+    it('should limit zoom in', () => {
+        manager.scale = 9.5;
+        manager.zoomIn();
+        expect(manager.scale).toBeLessThanOrEqual(10.5); // 9.5 * 1.1 = 10.45
+        manager.scale = 10;
+        manager.zoomIn();
+        expect(manager.scale).toBe(10);
+    });
+
+    it('should limit zoom out', () => {
+        manager.scale = 0.11;
+        manager.zoomOut();
+        expect(manager.scale).toBe(0.1);
+        manager.zoomOut();
+        expect(manager.scale).toBe(0.1);
+    });
+
+    it('should clear canvas and reset history', () => {
+        const historyClearSpy = vi.spyOn(manager.historyManager, 'clear');
+        const pageClearSpy = vi.spyOn(manager.pageManager, 'clear');
+
+        manager.clear(800, 600);
+
+        expect(historyClearSpy).toHaveBeenCalled();
+        expect(pageClearSpy).toHaveBeenCalled();
+        const pages = manager.getPages();
+        expect(pages.size).toBe(1);
+        const page = pages.values().next().value;
+        if (!page) throw new Error('No page found');
+        expect(page.width).toBe(800);
+        expect(page.height).toBe(600);
+    });
+
+    it('should undo and redo', async () => {
+        const action = {
+            draw: vi.fn(),
+            pageId: 'page1'
+        };
+
+        // Mock history manager return values
+        vi.spyOn(manager.historyManager, 'undo').mockReturnValue([action as any]);
+        vi.spyOn(manager.historyManager, 'redo').mockReturnValue([action as any]);
+
+        const redrawSpy = vi.spyOn(manager, 'redraw').mockImplementation(async () => { });
+
+        await manager.undo();
+        expect(redrawSpy).toHaveBeenCalled(); // Since undo calls redraw
+
+        await manager.redo();
+        expect(redrawSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle loadFromBlob error for unsupported type', async () => {
+        // Need to import toast mock properly or spy on it if already mocked
+        // The file mocks toast at top level: vi.mock('../ui/toast', ...
+        const { showToast } = await import('../ui/toast');
+        const blob = new Blob(['test'], { type: 'text/plain' });
+        await manager.loadFromBlob(blob);
+        expect(showToast).toHaveBeenCalledWith(expect.stringContaining('Unsupported file type'));
+    });
 });
