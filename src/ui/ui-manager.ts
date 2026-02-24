@@ -111,6 +111,10 @@ export class UIManager {
         document.getElementById('main-undo-btn')?.addEventListener('click', () => this.canvasManager.undo());
         document.getElementById('main-redo-btn')?.addEventListener('click', () => this.canvasManager.redo());
         document.getElementById('menu-select')?.addEventListener('click', () => this.toolStateManager.toggleSelectTool());
+        document.getElementById('menu-cut')?.addEventListener('click', () => this.canvasManager.cutSelection());
+        document.getElementById('menu-copy')?.addEventListener('click', () => this.canvasManager.copySelection());
+        document.getElementById('menu-paste')?.addEventListener('click', () => this.canvasManager.pasteFromClipboard());
+        document.getElementById('menu-copy-to-page')?.addEventListener('click', () => this.canvasManager.copyToNewPage());
         document.getElementById('menu-delete-edit')?.addEventListener('click', () => this.canvasManager.deleteSelection());
         document.getElementById('menu-fill-selection')?.addEventListener('click', () => this.canvasManager.fillSelection());
         document.getElementById('menu-select-all')?.addEventListener('click', () => this.handleSelectAll());
@@ -218,6 +222,12 @@ export class UIManager {
                 if (key === 'd') { e.preventDefault(); this.canvasManager.deselect(); return; }
                 if (key === 'i' && e.shiftKey) { e.preventDefault(); this.canvasManager.invertSelection(); return; }
                 if (e.key === 'Delete') { e.preventDefault(); this.canvasManager.fillSelection(); return; }
+
+                // Clipboard operations (guarded: skip when typing in inputs)
+                const isTyping = (e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA';
+                if (key === 'c' && !isTyping && this.canvasManager.hasSelection()) { e.preventDefault(); this.canvasManager.copySelection(); return; }
+                if (key === 'x' && !isTyping && this.canvasManager.hasSelection()) { e.preventDefault(); this.canvasManager.cutSelection(); return; }
+                if (key === 'v' && !isTyping) { e.preventDefault(); this.canvasManager.pasteFromClipboard(); return; }
 
                 // Tool Switching
                 if (key === 'h') { e.preventDefault(); this.toolStateManager.toggleHandTool(); return; }

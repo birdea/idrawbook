@@ -5,3 +5,5 @@ export * from './fill-action';
 export * from './text-action';
 export * from './selection-clear-action';
 export * from './selection-fill-action';
+export * from './selection-move-action';
+export * from './paste-action';
