@@ -111,6 +111,11 @@ export class UIManager {
         document.getElementById('main-undo-btn')?.addEventListener('click', () => this.canvasManager.undo());
         document.getElementById('main-redo-btn')?.addEventListener('click', () => this.canvasManager.redo());
         document.getElementById('menu-select')?.addEventListener('click', () => this.toolStateManager.toggleSelectTool());
+        document.getElementById('menu-delete-edit')?.addEventListener('click', () => this.canvasManager.deleteSelection());
+        document.getElementById('menu-fill-selection')?.addEventListener('click', () => this.canvasManager.fillSelection());
+        document.getElementById('menu-select-all')?.addEventListener('click', () => this.handleSelectAll());
+        document.getElementById('menu-deselect')?.addEventListener('click', () => this.canvasManager.deselect());
+        document.getElementById('menu-invert-selection')?.addEventListener('click', () => this.canvasManager.invertSelection());
 
         document.getElementById('menu-close-book')?.addEventListener('click', () => {
             if (confirm('Close current book? Unsaved changes will be lost.')) this.canvasManager.clear();
@@ -179,8 +184,24 @@ export class UIManager {
         });
     }
 
+    private handleSelectAll(): void {
+        this.toolStateManager.switchTool('select');
+        this.canvasManager.selectAll();
+    }
+
     private setupKeyboardShortcuts(): void {
         window.addEventListener('keydown', (e) => {
+            // Non-Ctrl shortcuts: Delete / Backspace erases selection
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !e.ctrlKey && !e.metaKey) {
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+                if (this.canvasManager.hasSelection()) {
+                    e.preventDefault();
+                    this.canvasManager.deleteSelection();
+                    return;
+                }
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 const key = e.key.toLowerCase();
 
@@ -191,6 +212,12 @@ export class UIManager {
                     else this.canvasManager.undo();
                     return;
                 }
+
+                // Selection operations
+                if (key === 'a') { e.preventDefault(); this.handleSelectAll(); return; }
+                if (key === 'd') { e.preventDefault(); this.canvasManager.deselect(); return; }
+                if (key === 'i' && e.shiftKey) { e.preventDefault(); this.canvasManager.invertSelection(); return; }
+                if (e.key === 'Delete') { e.preventDefault(); this.canvasManager.fillSelection(); return; }
 
                 // Tool Switching
                 if (key === 'h') { e.preventDefault(); this.toolStateManager.toggleHandTool(); return; }

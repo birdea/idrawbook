@@ -3,3 +3,5 @@ export * from './stroke-action';
 export * from './shape-action';
 export * from './fill-action';
 export * from './text-action';
+export * from './selection-clear-action';
+export * from './selection-fill-action';

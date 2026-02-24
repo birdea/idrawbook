@@ -8,6 +8,7 @@ import { TextTool } from '../tools/text-tool';
 import type { ToolConfig, DrawingTool, Point } from '../tools/types';
 import { showToast } from '../ui/toast';
 import { ToolManager } from './tool-manager';
+import { SelectTool } from '../tools/select-tool';
 
 export class CanvasManager implements ICanvasContext {
     public canvas: HTMLCanvasElement;
@@ -252,6 +253,37 @@ export class CanvasManager implements ICanvasContext {
         link.download = 'idrawbook-' + id + '-' + Date.now() + '.png';
         link.href = page.canvas.toDataURL();
         link.click();
+    }
+
+    // Selection operations (delegate to SelectTool)
+    private selectTool(): SelectTool {
+        return this.toolManager.getTool('select') as SelectTool;
+    }
+
+    public hasSelection(): boolean {
+        return this.selectTool().hasSelection();
+    }
+
+    public deleteSelection(): boolean {
+        return this.selectTool().deleteSelection();
+    }
+
+    public fillSelection(): boolean {
+        return this.selectTool().fillSelection();
+    }
+
+    public invertSelection(): void {
+        const page = this.pageManager.getActivePage();
+        if (page) this.selectTool().invertSelection(page);
+    }
+
+    public selectAll(): void {
+        const page = this.pageManager.getActivePage();
+        if (page) this.selectTool().selectAll(page);
+    }
+
+    public deselect(): void {
+        this.selectTool().deselect();
     }
 
     // Legacy support methods

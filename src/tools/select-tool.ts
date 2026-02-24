@@ -1,6 +1,8 @@
 import { BaseTool } from './base-tool';
 import type { Point } from './types';
 import type { Page } from '../canvas/types';
+import { SelectionClearAction } from '../actions/selection-clear-action';
+import { SelectionFillAction } from '../actions/selection-fill-action';
 
 const WAND_CURSOR_SVG = encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">` +
@@ -175,5 +177,93 @@ export class SelectTool extends BaseTool {
       height: this.maskHeight,
       page: this.maskPage,
     };
+  }
+
+  /** Returns true when there is an active selection. */
+  public hasSelection(): boolean {
+    return this.selectionMask !== null && this.maskPage !== null;
+  }
+
+  /**
+   * Clears (erases to white) the selected pixels and records an undoable action.
+   * Returns false when there is no active selection.
+   */
+  public deleteSelection(): boolean {
+    if (!this.selectionMask || !this.maskPage) return false;
+
+    const action = new SelectionClearAction(
+      this.selectionMask,
+      this.maskWidth,
+      this.maskHeight,
+      this.context.config,
+      this.maskPage.id,
+    );
+    action.draw(this.maskPage.ctx);
+    this.context.pushAction(action);
+
+    this.selectionMask = null;
+    this.maskPage = null;
+    this.context.render();
+    this.context.onUpdateCallback?.();
+    return true;
+  }
+
+  /**
+   * Fills the selected pixels with the current config color and records an undoable action.
+   * Returns false when there is no active selection.
+   */
+  public fillSelection(): boolean {
+    if (!this.selectionMask || !this.maskPage) return false;
+
+    const action = new SelectionFillAction(
+      this.selectionMask,
+      this.maskWidth,
+      this.maskHeight,
+      this.context.config,
+      this.maskPage.id,
+    );
+    action.draw(this.maskPage.ctx);
+    this.context.pushAction(action);
+
+    this.selectionMask = null;
+    this.maskPage = null;
+    this.context.render();
+    this.context.onUpdateCallback?.();
+    return true;
+  }
+
+  /**
+   * Inverts the current selection mask.
+   * If there is no active selection, selects the entire page instead.
+   */
+  public invertSelection(page: Page): void {
+    if (!this.selectionMask || !this.maskPage || this.maskPage.id !== page.id) {
+      this.selectAll(page);
+      return;
+    }
+
+    for (let i = 0; i < this.selectionMask.length; i++) {
+      this.selectionMask[i] = this.selectionMask[i] ? 0 : 1;
+    }
+
+    this.buildOverlay();
+    this.context.render();
+  }
+
+  /**
+   * Selects all pixels on the given page.
+   */
+  public selectAll(page: Page): void {
+    this.selectionMask = new Uint8Array(page.width * page.height).fill(1);
+    this.maskWidth = page.width;
+    this.maskHeight = page.height;
+    this.maskPage = page;
+    this.buildOverlay();
+    this.context.render();
+  }
+
+  /** Clears the current selection (same as cancel). */
+  public deselect(): void {
+    this.cancel();
   }
 }

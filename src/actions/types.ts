@@ -1,6 +1,6 @@
 import type { ToolConfig } from '../tools/types';
 
-export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill' | 'text';
+export type ActionType = 'stroke' | 'line' | 'rect' | 'circle' | 'fill' | 'text' | 'selection-clear' | 'selection-fill';
 
 export interface DrawingAction {
     type: ActionType;
