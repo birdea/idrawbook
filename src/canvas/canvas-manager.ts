@@ -31,6 +31,7 @@ export class CanvasManager implements ICanvasContext {
 
     public onUpdateCallback: ((pageId?: string) => void) | null = null;
     public onZoomChange: ((zoomPercent: number) => void) | null = null;
+    public postRenderCallback: (() => void) | null = null;
 
     constructor(canvasId: string, onUpdate?: () => void) {
         this.onUpdateCallback = onUpdate || null;
@@ -86,6 +87,7 @@ export class CanvasManager implements ICanvasContext {
             this.offset,
             this.getActivePageId()
         );
+        this.postRenderCallback?.();
         this.updateZoomIndicator();
     }
 
