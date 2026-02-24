@@ -64,10 +64,13 @@
         <button id="menu-cut">Cut</button>
         <button id="menu-copy">Copy</button>
         <button id="menu-paste">Paste</button>
-        <button id="menu-delete-edit">Delete</button>
+        <button id="menu-delete-edit">Delete <span class="shortcut">Del</span></button>
+        <button id="menu-fill-selection">Fill Selection <span class="shortcut">Ctrl+Del</span></button>
         <div class="menu-separator"></div>
-        <button id="menu-select">Select</button>
-        <button id="menu-select-all">Select All</button>
+        <button id="menu-select">Magic Wand <span class="shortcut">Ctrl+W</span></button>
+        <button id="menu-select-all">Select All <span class="shortcut">Ctrl+A</span></button>
+        <button id="menu-deselect">Deselect <span class="shortcut">Ctrl+D</span></button>
+        <button id="menu-invert-selection">Invert Selection <span class="shortcut">Ctrl+Shift+I</span></button>
       </div>
     </div>
     <div class="menu-item" data-menu="view">
@@ -116,6 +119,7 @@
       <div class="h-separator"></div>
       <div class="tool-group">
         <button class="tool-btn" id="tool-eraser" data-tool="eraser" data-tooltip="Eraser (Ctrl+E)"></button>
+        <button class="tool-btn" id="tool-select" data-tool="select" data-tooltip="Magic Wand (Ctrl+W)"></button>
       </div>
       <div class="h-separator"></div>
       <div class="tool-group" id="shape-tools">

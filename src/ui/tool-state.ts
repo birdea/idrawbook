@@ -62,7 +62,11 @@ export class ToolStateManager {
     }
 
     public switchTool(tool: DrawingTool) {
-        if (tool === 'hand' && this.currentActiveTool !== 'hand') {
+        if (
+            (tool === 'hand' || tool === 'select') &&
+            this.currentActiveTool !== 'hand' &&
+            this.currentActiveTool !== 'select'
+        ) {
             this.lastTool = this.currentActiveTool;
         }
 
@@ -85,6 +89,14 @@ export class ToolStateManager {
             this.switchTool(this.lastTool);
         } else {
             this.switchTool('hand');
+        }
+    }
+
+    public toggleSelectTool() {
+        if (this.currentActiveTool === 'select') {
+            this.switchTool(this.lastTool);
+        } else {
+            this.switchTool('select');
         }
     }
 

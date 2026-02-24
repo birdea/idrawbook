@@ -6,6 +6,7 @@ import { ShapeTool } from '../tools/shape-tool';
 import { FillTool } from '../tools/fill-tool';
 import { TextTool } from '../tools/text-tool';
 import { HandTool } from '../tools/hand-tool';
+import { SelectTool } from '../tools/select-tool';
 
 export class ToolManager {
     private context: ICanvasContext;
@@ -30,6 +31,7 @@ export class ToolManager {
         this.tools.set('fill', new FillTool(context));
         this.tools.set('text', new TextTool(context));
         this.tools.set('hand', new HandTool(context));
+        this.tools.set('select', new SelectTool(context));
     }
 
     public getTool(name: DrawingTool): ITool {

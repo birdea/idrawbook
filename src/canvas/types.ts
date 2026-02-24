@@ -46,6 +46,7 @@ export interface ICanvasContext {
     redraw(): Promise<void>;
     pushAction(action: DrawingAction): void;
     onUpdateCallback: ((pageId?: string) => void) | null;
+    postRenderCallback: (() => void) | null;
 
     screenToWorld(x: number, y: number): Point;
     worldToScreen(wx: number, wy: number): Point;
