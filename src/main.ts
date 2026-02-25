@@ -19,7 +19,9 @@ Sentry.init({
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
   ],
+  // Performance Monitoring
   tracesSampleRate: 1.0,
+  // Session Replay
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 });
@@ -79,5 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const versionInfo = document.querySelector('.version-info');
   if (versionInfo) versionInfo.textContent = `v${APP_CONFIG.VERSION} `;
   const headerVersion = document.querySelector('.version-display');
+  if (headerVersion) headerVersion.textContent = `v${APP_CONFIG.VERSION} `;
   if (headerVersion) headerVersion.textContent = `v${APP_CONFIG.VERSION} `;
 });
