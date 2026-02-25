@@ -11,6 +11,18 @@ import { updatePreview } from './ui/preview';
 import { ToolStateManager } from './ui/tool-state';
 import { ModalManager } from './ui/modals';
 import { UIManager } from './ui/ui-manager';
+import * as Sentry from '@sentry/browser';
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   // Initialization
