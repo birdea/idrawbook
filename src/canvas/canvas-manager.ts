@@ -9,6 +9,7 @@ import type { ToolConfig, DrawingTool, Point } from '../tools/types';
 import { showToast } from '../ui/toast';
 import { ToolManager } from './tool-manager';
 import { SelectTool } from '../tools/select-tool';
+import { PasteAction } from '../actions/paste-action';
 
 export class CanvasManager implements ICanvasContext {
     public canvas: HTMLCanvasElement;
@@ -284,6 +285,105 @@ export class CanvasManager implements ICanvasContext {
 
     public deselect(): void {
         this.selectTool().deselect();
+    }
+
+    public async copySelection(): Promise<boolean> {
+        return this.selectTool().copySelection();
+    }
+
+    public async cutSelection(): Promise<boolean> {
+        return this.selectTool().cutSelection();
+    }
+
+    public async pasteFromClipboard(): Promise<boolean> {
+        const page = this.pageManager.getActivePage();
+        if (!page) return false;
+
+        let imageData: ImageData;
+        try {
+            const items = await navigator.clipboard.read();
+            let blob: Blob | null = null;
+            for (const item of items) {
+                if (item.types.includes('image/png')) {
+                    blob = await item.getType('image/png');
+                    break;
+                }
+            }
+            if (!blob) return false;
+            const bitmap = await createImageBitmap(blob);
+            const tmp = document.createElement('canvas');
+            tmp.width = bitmap.width;
+            tmp.height = bitmap.height;
+            const tmpCtx = tmp.getContext('2d')!;
+            tmpCtx.drawImage(bitmap, 0, 0);
+            imageData = tmpCtx.getImageData(0, 0, bitmap.width, bitmap.height);
+        } catch (err) {
+            console.warn('Clipboard read failed:', err);
+            return false;
+        }
+
+        // Center paste within the current viewport, clamped to page bounds
+        const viewCX = (this.canvas.width / 2 - this.offset.x) / this.scale;
+        const viewCY = (this.canvas.height / 2 - this.offset.y) / this.scale;
+        const pasteX = Math.round(Math.max(0, Math.min(page.width - imageData.width, viewCX - page.x - imageData.width / 2)));
+        const pasteY = Math.round(Math.max(0, Math.min(page.height - imageData.height, viewCY - page.y - imageData.height / 2)));
+
+        const action = new PasteAction(imageData, pasteX, pasteY, this.config, page.id);
+        action.draw(page.ctx);
+        this.pushAction(action);
+        this.render();
+        this.onUpdateCallback?.();
+        return true;
+    }
+
+    /**
+     * Copies the selected pixels to a brand-new page sized to the bounding box.
+     * Returns the new page ID, or null if there is no active selection.
+     */
+    public copyToNewPage(): string | null {
+        const data = this.selectTool().getSelectionMask();
+        if (!data) return null;
+
+        const { mask, width: w, height: h, page } = data;
+
+        // Compute bounding box
+        let minX = w, minY = h, maxX = 0, maxY = 0;
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                if (mask[y * w + x]) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        if (minX > maxX || minY > maxY) return null;
+
+        const bw = maxX - minX + 1;
+        const bh = maxY - minY + 1;
+
+        const srcData = page.ctx.getImageData(minX, minY, bw, bh);
+        const d = srcData.data;
+
+        // Fill non-selected pixels with white
+        for (let y = 0; y < bh; y++) {
+            for (let x = 0; x < bw; x++) {
+                if (!mask[(minY + y) * w + (minX + x)]) {
+                    const p = (y * bw + x) * 4;
+                    d[p] = 255; d[p + 1] = 255; d[p + 2] = 255; d[p + 3] = 255;
+                }
+            }
+        }
+
+        const newPageId = this.pageManager.addPage(bw, bh);
+        const newPage = this.pageManager.get(newPageId);
+        if (newPage) {
+            newPage.ctx.putImageData(srcData, 0, 0);
+        }
+        this.render();
+        this.onUpdateCallback?.();
+        return newPageId;
     }
 
     // Legacy support methods
